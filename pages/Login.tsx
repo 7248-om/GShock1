@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useAuthMock } from "../hooks/useAuthMock.";
+import { useAuthMock } from "../hooks/useAuthMock";
 
 
 const Login = () => {

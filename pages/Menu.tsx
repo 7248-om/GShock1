@@ -1,8 +1,8 @@
 import { CoffeeMenu } from "../components/menu/CoffeeMenu";
 import { CoffeeFAQ } from "../components/menu/CoffeeFAQ";
 import { CartDrawer } from "../components/cart/CartDrawer";
-import { useAuthMock } from "@/hooks/useAuthMock";
-import { useCart } from "@/hooks/useCart";
+import { useAuthMock } from "../hooks/useAuthMock";
+import { useCart } from "../hooks/useCart";
 import { useNavigate } from "react-router-dom";
 
 const Menu = () => {
