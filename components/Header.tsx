@@ -43,8 +43,8 @@ const Header: React.FC = () => {
     {
       name: 'Workshops',
       links: [
-        { label: 'Coffee Workshops', path: '/' },
-        { label: 'Community Events', path: '/' },
+        { label: 'Coffee Workshops', path: '/workshop' },
+        { label: 'Community Events', path: '/workshop' },
       ],
     },
     {
