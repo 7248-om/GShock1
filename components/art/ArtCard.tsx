@@ -1,5 +1,5 @@
-
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Artwork } from './types';
 
 interface ArtCardProps {
@@ -10,7 +10,8 @@ const ArtCard: React.FC<ArtCardProps> = ({ artwork }) => {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <div 
+    <Link 
+      to={`/art/${artwork.id}`}
       className="group flex flex-col cursor-pointer"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -31,7 +32,7 @@ const ArtCard: React.FC<ArtCardProps> = ({ artwork }) => {
           }`}
         />
         <div className={`absolute inset-x-0 bottom-0 bg-white/95 backdrop-blur-sm border-t border-black py-4 transition-transform duration-300 ${isHovered ? 'translate-y-0' : 'translate-y-full'}`}>
-           <p className="text-[11px] font-black tracking-[0.2em] text-center uppercase">Add to Cart</p>
+           <p className="text-[11px] font-black tracking-[0.2em] text-center uppercase">View Product</p>
         </div>
       </div>
 
@@ -48,7 +49,7 @@ const ArtCard: React.FC<ArtCardProps> = ({ artwork }) => {
           {artwork.artist} | {artwork.medium} | {artwork.dimensions}
         </p>
       </div>
-    </div>
+    </Link>
   );
 };
 
