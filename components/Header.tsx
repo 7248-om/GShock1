@@ -36,15 +36,15 @@ const Header: React.FC = () => {
     {
       name: 'Art',
       links: [
-        { label: 'Gallery', path: '/' },
-        { label: 'Featured Artists', path: '/' },
+        { label: 'Gallery', path: '/art' },
+        { label: 'Featured Artists', path: '/art' },
       ],
     },
     {
       name: 'Workshops',
       links: [
-        { label: 'Coffee Workshops', path: '/' },
-        { label: 'Community Events', path: '/' },
+        { label: 'Coffee Workshops', path: '/workshop' },
+        { label: 'Community Events', path: '/workshop' },
       ],
     },
     {
