@@ -1,3 +1,4 @@
+//
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 import Header from './components/Header';
@@ -8,6 +9,7 @@ import Menu from './pages/Menu';
 import Login from './pages/Login';
 import Payment from './pages/Payment';
 import Art from './pages/Art';
+import ArtProduct from './pages/ArtProduct'; 
 
 const App = () => {
   return (
@@ -23,6 +25,7 @@ const App = () => {
             <Route path="/payment" element={<Payment />} />
             <Route path="/workshop" element={<Workshop/>}/>
             <Route path="/art" element={<Art/>}/>
+            <Route path="/art/:id" element={<ArtProduct/>}/> 
           </Routes>
         </main>
 
