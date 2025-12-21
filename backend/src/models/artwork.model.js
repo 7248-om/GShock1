@@ -32,7 +32,7 @@ const artworkSchema = new mongoose.Schema(
       },
     ],
 
-    available: {
+    isAvailable: {
       type: Boolean,
       default: true,
     },
