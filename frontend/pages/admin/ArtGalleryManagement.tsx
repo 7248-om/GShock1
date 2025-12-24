@@ -1,38 +1,71 @@
 
 import React, { useState } from 'react';
-import { Search, Plus, MoreVertical, X, Image as ImageIcon } from 'lucide-react';
+import { Search, Plus, MoreVertical, X, Image as ImageIcon, Trash2 } from 'lucide-react';
 import { Artwork, ArtStatus } from '../types';
 
 interface Props {
   artworks: Artwork[];
-  onAdd: (art: Artwork) => void;
-  onUpdate: (art: Artwork) => void;
+  onAdd: (art: Artwork) => Promise<void>;
+  onUpdate: (art: Artwork) => Promise<void>;
+  onDelete?: (id: string) => Promise<void>;
 }
 
-const ArtGalleryManagement: React.FC<Props> = ({ artworks, onAdd, onUpdate }) => {
+const ArtGalleryManagement: React.FC<Props> = ({ artworks, onAdd, onUpdate, onDelete }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editing, setEditing] = useState<Artwork | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const fd = new FormData(e.currentTarget);
-    const item: Artwork = {
-      id: editing?.id || Math.random().toString(36).substr(2, 9),
-      title: fd.get('title') as string,
-      artist: fd.get('artist') as string,
-      year: fd.get('year') as string,
-      medium: fd.get('medium') as string,
-      dimensions: fd.get('dimensions') as string,
-      price: parseFloat(fd.get('price') as string),
-      status: fd.get('status') as ArtStatus,
-      primaryImageUrl: fd.get('primaryImageUrl') as string,
-      hoverImageUrl: fd.get('hoverImageUrl') as string,
-      themeColor: fd.get('themeColor') as string,
-      tastingNotes: fd.get('tastingNotes') as string,
-    };
-    editing ? onUpdate(item) : onAdd(item);
-    setIsModalOpen(false);
-    setEditing(null);
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      const fd = new FormData(e.currentTarget);
+      const item: Artwork = {
+        _id: editing?._id,
+        id: editing?.id || Math.random().toString(36).substr(2, 9),
+        title: fd.get('title') as string,
+        artist: fd.get('artist') as string,
+        year: fd.get('year') as string,
+        medium: fd.get('medium') as string,
+        dimensions: fd.get('dimensions') as string,
+        price: parseFloat(fd.get('price') as string),
+        status: fd.get('status') as ArtStatus,
+        primaryImageUrl: fd.get('primaryImageUrl') as string,
+        hoverImageUrl: fd.get('hoverImageUrl') as string,
+        themeColor: fd.get('themeColor') as string,
+        tastingNotes: fd.get('tastingNotes') as string,
+      };
+      
+      if (editing) {
+        await onUpdate(item);
+      } else {
+        await onAdd(item);
+      }
+      
+      setIsModalOpen(false);
+      setEditing(null);
+    } catch (error: any) {
+      setSubmitError(error.message || 'Failed to save artwork');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!onDelete) return;
+    
+    if (!window.confirm('Are you sure you want to delete this artwork?')) {
+      return;
+    }
+
+    try {
+      await onDelete(id);
+    } catch (error: any) {
+      alert(error.message || 'Failed to delete artwork');
+    }
   };
 
   return (
@@ -49,7 +82,7 @@ const ArtGalleryManagement: React.FC<Props> = ({ artworks, onAdd, onUpdate }) =>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {artworks.map(art => (
-          <div key={art.id} className="bg-neutral-900 border border-neutral-800 rounded-3xl overflow-hidden group hover:border-neutral-600 transition-all">
+          <div key={art._id || art.id} className="bg-neutral-900 border border-neutral-800 rounded-3xl overflow-hidden group hover:border-neutral-600 transition-all">
             <div className="aspect-[4/5] relative bg-black overflow-hidden">
               <img src={art.primaryImageUrl} alt={art.title} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
               <div className="absolute top-4 right-4">
@@ -64,9 +97,16 @@ const ArtGalleryManagement: React.FC<Props> = ({ artworks, onAdd, onUpdate }) =>
                   <h3 className="font-serif font-bold text-xl">{art.title}</h3>
                   <p className="text-sm text-neutral-400">{art.artist}, {art.year}</p>
                 </div>
-                <button onClick={() => { setEditing(art); setIsModalOpen(true); }} className="text-neutral-500 hover:text-white">
-                  <MoreVertical size={20} />
-                </button>
+                <div className="flex gap-1">
+                  <button onClick={() => { setEditing(art); setIsModalOpen(true); }} className="text-neutral-500 hover:text-white p-2">
+                    <MoreVertical size={18} />
+                  </button>
+                  {onDelete && (
+                    <button onClick={() => handleDelete(art._id || art.id || '')} className="text-neutral-500 hover:text-red-500 p-2">
+                      <Trash2 size={18} />
+                    </button>
+                  )}
+                </div>
               </div>
               <div className="mt-4 pt-4 border-t border-neutral-800 flex justify-between items-end">
                 <div>
@@ -87,6 +127,13 @@ const ArtGalleryManagement: React.FC<Props> = ({ artworks, onAdd, onUpdate }) =>
               <h3 className="text-2xl font-serif font-bold">{editing ? 'Refine Work' : 'Catalogue Work'}</h3>
               <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-neutral-800 rounded-full"><X /></button>
             </div>
+            
+            {submitError && (
+              <div className="p-4 m-4 bg-red-900/20 border border-red-700 rounded-lg">
+                <p className="text-red-300 text-sm">{submitError}</p>
+              </div>
+            )}
+            
             <form onSubmit={handleSubmit} className="p-8 space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
@@ -136,8 +183,8 @@ const ArtGalleryManagement: React.FC<Props> = ({ artworks, onAdd, onUpdate }) =>
                   <input name="tastingNotes" defaultValue={editing?.tastingNotes} placeholder="e.g. Velvety | Deep" className="w-full bg-black border border-neutral-800 rounded-xl px-4 py-3 text-sm focus:border-white transition-colors outline-none" />
                 </div>
               </div>
-              <button type="submit" className="w-full py-4 bg-white text-black font-bold uppercase tracking-widest rounded-full hover:bg-neutral-200 transition-colors mt-4">
-                Save Artwork
+              <button type="submit" disabled={isSubmitting} className="w-full py-4 bg-white text-black font-bold uppercase tracking-widest rounded-full hover:bg-neutral-200 transition-colors mt-4 disabled:opacity-50 disabled:cursor-not-allowed">
+                {isSubmitting ? 'Saving...' : 'Save Artwork'}
               </button>
             </form>
           </div>

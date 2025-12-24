@@ -107,6 +107,14 @@ const Header: React.FC = () => {
             >
               Visit Café
             </button>
+            {user?.role === 'admin' && (
+              <button
+                onClick={() => closeAndNavigate('/admin')}
+                className="hidden md:flex items-center uppercase text-sm font-bold tracking-wider hover:text-gold transition-colors"
+              >
+                Admin
+              </button>
+            )}
             {user ? (
               <button
                 onClick={handleLogout}
@@ -198,6 +206,11 @@ const Header: React.FC = () => {
                 <button onClick={() => closeAndNavigate('/menu')} className="block hover:text-white mb-2 text-left">
                   Visit the Café
                 </button>
+                {user?.role === 'admin' && (
+                  <button onClick={() => closeAndNavigate('/admin')} className="block hover:text-white mb-2 text-left">
+                    Admin Dashboard
+                  </button>
+                )}
                 <button className="block hover:text-white text-left">
                   Upcoming Workshops
                 </button>

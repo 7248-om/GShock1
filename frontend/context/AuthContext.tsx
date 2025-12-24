@@ -4,10 +4,11 @@ import { auth, googleProvider } from '../firebase';
 import axios from 'axios';
 
 interface User {
-  _id: string;
+  _id?: string;
+  id?: string;
   name: string;
   email: string;
-  role: 'user' | 'admin';
+  role?: 'user' | 'admin';
 }
 
 interface AuthContextType {
@@ -23,7 +24,9 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Backend base URL: set VITE_BACKEND_API_URL in frontend .env; falls back to relative /api
-const API_BASE_URL = import.meta.env.VITE_BACKEND_API_URL || '/api';
+const API_BASE_URL = typeof import.meta !== 'undefined' && import.meta.env 
+  ? (import.meta.env as Record<string, string>).VITE_BACKEND_API_URL || '/api'
+  : '/api';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -40,14 +43,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const { user: backendUser, token: backendToken } = response.data;
 
+      if (!backendUser || !backendToken) {
+        throw new Error('Invalid response from backend: missing user or token');
+      }
+
       setUser(backendUser);
       setToken(backendToken);
       localStorage.setItem('authToken', backendToken);
     } catch (error) {
       console.error('Failed to sync auth with backend:', error);
+      
+      // Log more details for debugging
+      if (axios.isAxiosError(error)) {
+        console.error('Backend error response:', error.response?.data);
+        console.error('Backend error status:', error.response?.status);
+      }
+      
       setUser(null);
       setToken(null);
       localStorage.removeItem('authToken');
+      throw error;
     }
   };
 
@@ -74,9 +89,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (userCredential) {
         try {
           const idToken = await userCredential.getIdToken();
+          console.log('Firebase user authenticated, syncing with backend...');
           await syncWithBackend(idToken);
         } catch (error) {
-          console.error('Failed to get Firebase ID token:', error);
+          console.error('Failed to sync with backend after Firebase auth:', error);
           setUser(null);
           setToken(null);
           localStorage.removeItem('authToken');
@@ -96,10 +112,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loginWithGoogle = async () => {
     setLoading(true);
     try {
-      await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, googleProvider);
+      if (!result.user) {
+        throw new Error('No user returned from Google sign-in');
+      }
       // onAuthStateChanged will handle backend sync
     } catch (error) {
       console.error('Firebase Google login failed:', error);
+      setUser(null);
+      setToken(null);
+      localStorage.removeItem('authToken');
+      setFirebaseUser(null);
+      throw error;
     } finally {
       setLoading(false);
     }

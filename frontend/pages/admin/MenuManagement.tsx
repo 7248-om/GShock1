@@ -1,57 +1,76 @@
-
 import React, { useState } from 'react';
-import { 
-  Search, 
-  Plus, 
-  MoreVertical, 
-  Filter, 
-  X,
-  Image as ImageIcon,
-  Check
-} from 'lucide-react';
+import { Plus, X, Trash2, MoreVertical, Search, Image as ImageIcon } from 'lucide-react';
 import { MenuItem, Category, CoffeeTag } from '../types';
 
 interface MenuManagementProps {
   items: MenuItem[];
-  onAddItem: (item: MenuItem) => void;
-  onUpdateItem: (item: MenuItem) => void;
+  onAddItem: (item: MenuItem) => Promise<void>;
+  onUpdateItem: (item: MenuItem) => Promise<void>;
+  onDeleteItem?: (id: string) => Promise<void>;
 }
 
-const MenuManagement: React.FC<MenuManagementProps> = ({ items, onAddItem, onUpdateItem }) => {
+const MenuManagement: React.FC<MenuManagementProps> = ({ 
+  items, 
+  onAddItem, 
+  onUpdateItem, 
+  onDeleteItem 
+}) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const filteredItems = items.filter(item => 
-    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.category.toLowerCase().includes(searchTerm.toLowerCase())
+    item.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleSave = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
+    setIsSubmitting(true);
+    setSubmitError(null);
     
-    const newItem: MenuItem = {
-      id: editingItem?.id || Math.random().toString(36).substr(2, 9),
-      name: formData.get('name') as string,
-      description: formData.get('description') as string,
-      price: parseFloat(formData.get('price') as string),
-      category: formData.get('category') as Category,
-      imageUrl: formData.get('imageUrl') as string || 'https://picsum.photos/seed/coffee/400/400',
-      stockStatus: formData.get('stockStatus') as 'In Stock' | 'Out of Stock',
-      roastLevel: formData.get('roastLevel') as string,
-      tastingNotes: formData.get('tastingNotes') as string,
-      tags: Array.from(formData.getAll('tags')) as CoffeeTag[],
-    };
+    try {
+      const formData = new FormData(e.currentTarget);
+      
+      const newItem: MenuItem = {
+        id: editingItem?.id || `menu-${Date.now()}`,
+        name: formData.get('name') as string,
+        description: formData.get('description') as string,
+        price: parseFloat(formData.get('price') as string),
+        category: (formData.get('category') as Category) || Category.COFFEE,
+        imageUrl: formData.get('imageUrl') as string || 'https://picsum.photos/seed/coffee/400/400',
+        stockStatus: (formData.get('status') as 'In Stock' | 'Out of Stock') || 'In Stock',
+        tags: [],
+      };
 
-    if (editingItem) {
-      onUpdateItem(newItem);
-    } else {
-      onAddItem(newItem);
+      if (editingItem) {
+        await onUpdateItem(newItem);
+      } else {
+        await onAddItem(newItem);
+      }
+      
+      setIsModalOpen(false);
+      setEditingItem(null);
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Failed to save item');
+    } finally {
+      setIsSubmitting(false);
     }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!onDeleteItem) return;
+    if (!confirm('Are you sure you want to delete this item?')) return;
     
-    setIsModalOpen(false);
-    setEditingItem(null);
+    try {
+      setIsSubmitting(true);
+      await onDeleteItem(id);
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Failed to delete item');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -82,12 +101,6 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ items, onAddItem, onUpd
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div className="flex gap-2 w-full sm:w-auto">
-          <button className="flex items-center gap-2 px-4 py-3 bg-neutral-800 rounded-xl text-sm border border-transparent hover:border-neutral-600">
-            <Filter size={18} />
-            <span>Filters</span>
-          </button>
-        </div>
       </div>
 
       {/* Table */}
@@ -97,9 +110,7 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ items, onAddItem, onUpd
             <tr className="border-b border-neutral-800">
               <th className="px-6 py-4 text-[10px] uppercase tracking-widest text-neutral-500 font-bold">Image</th>
               <th className="px-6 py-4 text-[10px] uppercase tracking-widest text-neutral-500 font-bold">Product Details</th>
-              <th className="px-6 py-4 text-[10px] uppercase tracking-widest text-neutral-500 font-bold">Category</th>
               <th className="px-6 py-4 text-[10px] uppercase tracking-widest text-neutral-500 font-bold">Price</th>
-              <th className="px-6 py-4 text-[10px] uppercase tracking-widest text-neutral-500 font-bold">Status</th>
               <th className="px-6 py-4"></th>
             </tr>
           </thead>
@@ -117,27 +128,27 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ items, onAddItem, onUpd
                     <p className="text-xs text-neutral-500 line-clamp-1">{item.description}</p>
                   </div>
                 </td>
-                <td className="px-6 py-4">
-                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-black border border-neutral-700 rounded text-neutral-400">
-                    {item.category}
-                  </span>
-                </td>
                 <td className="px-6 py-4 font-serif">
                   ${item.price.toFixed(2)}
                 </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-2">
-                    <div className={`w-1.5 h-1.5 rounded-full ${item.stockStatus === 'In Stock' ? 'bg-green-500' : 'bg-red-500'}`} />
-                    <span className="text-xs">{item.stockStatus}</span>
-                  </div>
-                </td>
                 <td className="px-6 py-4 text-right">
-                  <button 
-                    onClick={() => { setEditingItem(item); setIsModalOpen(true); }}
-                    className="p-2 text-neutral-500 hover:text-white transition-colors"
-                  >
-                    <MoreVertical size={18} />
-                  </button>
+                  <div className="flex items-center gap-2 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button 
+                      onClick={() => { setEditingItem(item); setIsModalOpen(true); }}
+                      className="p-2 text-neutral-500 hover:text-white transition-colors"
+                    >
+                      <MoreVertical size={18} />
+                    </button>
+                    {onDeleteItem && (
+                      <button 
+                        onClick={() => handleDelete(item.id)}
+                        disabled={isSubmitting}
+                        className="p-2 text-neutral-500 hover:text-red-500 transition-colors disabled:opacity-50"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}
@@ -151,19 +162,29 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ items, onAddItem, onUpd
           <div className="w-full max-w-xl h-full bg-neutral-900 border-l border-neutral-800 rounded-3xl overflow-hidden shadow-2xl animate-in slide-in-from-right duration-300">
             <div className="p-8 border-b border-neutral-800 flex justify-between items-center bg-black/40">
               <h3 className="text-2xl font-serif font-bold">{editingItem ? 'Refine Offering' : 'New Offering'}</h3>
-              <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-neutral-800 rounded-full">
+              <button 
+                onClick={() => setIsModalOpen(false)} 
+                className="p-2 hover:bg-neutral-800 rounded-full"
+                disabled={isSubmitting}
+              >
                 <X size={20} />
               </button>
             </div>
             
             <form onSubmit={handleSave} className="p-8 space-y-6 h-[calc(100%-100px)] overflow-y-auto">
+              {submitError && (
+                <div className="bg-red-900/20 border border-red-800 rounded-xl p-3 text-red-400 text-sm">
+                  {submitError}
+                </div>
+              )}
+              
               <div className="grid grid-cols-2 gap-6">
                 <div className="col-span-2">
                   <label className="block text-[10px] uppercase font-bold text-neutral-500 mb-2">Item Name</label>
                   <input 
                     name="name"
                     required
-                    defaultValue={editingItem?.name}
+                    defaultValue={editingItem?.name || ''}
                     className="w-full bg-black border border-neutral-800 rounded-xl px-4 py-3 text-sm focus:border-neutral-500 outline-none" 
                   />
                 </div>
@@ -174,10 +195,23 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ items, onAddItem, onUpd
                     name="price"
                     type="number"
                     step="0.01"
+                    min="0"
                     required
-                    defaultValue={editingItem?.price}
+                    defaultValue={editingItem?.price || ''}
                     className="w-full bg-black border border-neutral-800 rounded-xl px-4 py-3 text-sm focus:border-neutral-500 outline-none" 
                   />
+                </div>
+
+                <div className="col-span-1">
+                  <label className="block text-[10px] uppercase font-bold text-neutral-500 mb-2">Stock Status</label>
+                  <select 
+                    name="status"
+                    defaultValue={editingItem?.stockStatus || 'In Stock'}
+                    className="w-full bg-black border border-neutral-800 rounded-xl px-4 py-3 text-sm focus:border-neutral-500 outline-none"
+                  >
+                    <option value="In Stock">In Stock</option>
+                    <option value="Out of Stock">Out of Stock</option>
+                  </select>
                 </div>
 
                 <div className="col-span-1">
@@ -187,9 +221,9 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ items, onAddItem, onUpd
                     defaultValue={editingItem?.category || Category.COFFEE}
                     className="w-full bg-black border border-neutral-800 rounded-xl px-4 py-3 text-sm focus:border-neutral-500 outline-none"
                   >
-                    {Object.values(Category).map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
+                    <option value={Category.COFFEE}>{Category.COFFEE}</option>
+                    <option value={Category.SAVORY}>Savory Bites</option>
+                    <option value={Category.DESSERT}>Desserts</option>
                   </select>
                 </div>
 
@@ -198,84 +232,27 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ items, onAddItem, onUpd
                   <textarea 
                     name="description"
                     rows={3}
-                    defaultValue={editingItem?.description}
+                    defaultValue={editingItem?.description || ''}
                     className="w-full bg-black border border-neutral-800 rounded-xl px-4 py-3 text-sm focus:border-neutral-500 outline-none resize-none"
                   />
-                </div>
-
-                <div className="col-span-1">
-                  <label className="block text-[10px] uppercase font-bold text-neutral-500 mb-2">Roast Level</label>
-                  <input 
-                    name="roastLevel"
-                    placeholder="e.g. Expressive Dark"
-                    defaultValue={editingItem?.roastLevel}
-                    className="w-full bg-black border border-neutral-800 rounded-xl px-4 py-3 text-sm focus:border-neutral-500 outline-none" 
-                  />
-                </div>
-
-                <div className="col-span-1">
-                  <label className="block text-[10px] uppercase font-bold text-neutral-500 mb-2">Tasting Notes</label>
-                  <input 
-                    name="tastingNotes"
-                    placeholder="e.g. Earthy | Intense"
-                    defaultValue={editingItem?.tastingNotes}
-                    className="w-full bg-black border border-neutral-800 rounded-xl px-4 py-3 text-sm focus:border-neutral-500 outline-none" 
-                  />
-                </div>
-
-                <div className="col-span-2">
-                  <label className="block text-[10px] uppercase font-bold text-neutral-500 mb-2">Collection Tags</label>
-                  <div className="flex flex-wrap gap-4 p-4 bg-black border border-neutral-800 rounded-xl">
-                    {Object.values(CoffeeTag).map(tag => (
-                      <label key={tag} className="flex items-center gap-2 cursor-pointer group">
-                        <div className="relative">
-                          <input 
-                            type="checkbox" 
-                            name="tags" 
-                            value={tag} 
-                            defaultChecked={editingItem?.tags.includes(tag)}
-                            className="peer sr-only" 
-                          />
-                          <div className="w-5 h-5 border border-neutral-700 rounded bg-neutral-900 peer-checked:bg-white peer-checked:border-white transition-all flex items-center justify-center">
-                            <Check size={14} className="text-black scale-0 peer-checked:scale-100 transition-transform" />
-                          </div>
-                        </div>
-                        <span className="text-xs text-neutral-400 group-hover:text-white transition-colors">{tag}</span>
-                      </label>
-                    ))}
-                  </div>
                 </div>
 
                 <div className="col-span-2">
                   <label className="block text-[10px] uppercase font-bold text-neutral-500 mb-2">Image URL</label>
                   <div className="flex gap-4">
-                    <div className="w-20 h-20 bg-black border border-neutral-800 rounded-xl flex items-center justify-center shrink-0">
-                      <ImageIcon className="text-neutral-700" />
+                    <div className="w-20 h-20 bg-black border border-neutral-800 rounded-xl flex items-center justify-center shrink-0 overflow-hidden">
+                      {editingItem?.imageUrl ? (
+                        <img src={editingItem.imageUrl} alt="preview" className="w-full h-full object-cover" />
+                      ) : (
+                        <ImageIcon className="text-neutral-700" />
+                      )}
                     </div>
                     <input 
                       name="imageUrl"
                       placeholder="https://..."
-                      defaultValue={editingItem?.imageUrl}
+                      defaultValue={editingItem?.imageUrl || ''}
                       className="flex-1 bg-black border border-neutral-800 rounded-xl px-4 py-3 text-sm focus:border-neutral-500 outline-none h-20"
                     />
-                  </div>
-                </div>
-
-                <div className="col-span-2">
-                  <label className="block text-[10px] uppercase font-bold text-neutral-500 mb-2">Stock Availability</label>
-                  <div className="flex gap-4">
-                    <label className="flex-1">
-                      <input type="radio" name="stockStatus" value="In Stock" defaultChecked={editingItem?.stockStatus !== 'Out of Stock'} className="peer sr-only" />
-                      <div className="text-center py-3 bg-black border border-neutral-800 rounded-xl text-xs font-bold text-neutral-500 peer-checked:border-white peer-checked:text-white cursor-pointer transition-all">
-                        In Stock
-                      </div>
-                    </label>
-                    <label className="flex-1">
-                      <input type="radio" name="stockStatus" value="Out of Stock" defaultChecked={editingItem?.stockStatus === 'Out of Stock'} className="peer sr-only" />
-                      <div className="text-center py-3 bg-black border border-neutral-800 rounded-xl text-xs font-bold text-neutral-500 peer-checked:border-red-500 peer-checked:text-red-500 cursor-pointer transition-all">
-                        Sold Out
-                      </div>
-                    </label>
                   </div>
                 </div>
               </div>
@@ -284,15 +261,17 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ items, onAddItem, onUpd
                 <button 
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="flex-1 py-4 border border-neutral-800 rounded-full text-sm font-bold hover:bg-neutral-800 transition-colors"
+                  disabled={isSubmitting}
+                  className="flex-1 py-4 border border-neutral-800 rounded-full text-sm font-bold hover:bg-neutral-800 transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button 
                   type="submit"
-                  className="flex-1 py-4 bg-white text-black rounded-full text-sm font-bold hover:bg-neutral-200 transition-colors"
+                  disabled={isSubmitting}
+                  className="flex-1 py-4 bg-white text-black rounded-full text-sm font-bold hover:bg-neutral-200 transition-colors disabled:opacity-50"
                 >
-                  {editingItem ? 'Save Changes' : 'Add to Collection'}
+                  {isSubmitting ? 'Saving...' : editingItem ? 'Save Changes' : 'Add to Collection'}
                 </button>
               </div>
             </form>
@@ -304,3 +283,4 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ items, onAddItem, onUpd
 };
 
 export default MenuManagement;
+        
