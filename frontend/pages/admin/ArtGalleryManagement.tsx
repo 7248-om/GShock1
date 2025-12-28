@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { Search, Plus, MoreVertical, X, Image as ImageIcon, Trash2 } from 'lucide-react';
 import { Artwork, ArtStatus } from '../types';
 
@@ -15,6 +16,22 @@ const ArtGalleryManagement: React.FC<Props> = ({ artworks, onAdd, onUpdate, onDe
   const [editing, setEditing] = useState<Artwork | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const { token } = useAuth();
+  const API_BASE_URL = import.meta.env.VITE_BACKEND_API_URL || '/api';
+  const [uploadingPrimary, setUploadingPrimary] = useState(false);
+  const [uploadingHover, setUploadingHover] = useState(false);
+  const [primaryUrl, setPrimaryUrl] = useState<string | null>(null);
+  const [hoverUrl, setHoverUrl] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (editing) {
+      setPrimaryUrl(editing.primaryImageUrl || null);
+      setHoverUrl(editing.hoverImageUrl || null);
+    } else {
+      setPrimaryUrl(null);
+      setHoverUrl(null);
+    }
+  }, [editing]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -27,7 +44,7 @@ const ArtGalleryManagement: React.FC<Props> = ({ artworks, onAdd, onUpdate, onDe
         _id: editing?._id,
         id: editing?.id || Math.random().toString(36).substr(2, 9),
         title: fd.get('title') as string,
-        artist: fd.get('artist') as string,
+        artistName: fd.get('artist') as string,
         year: fd.get('year') as string,
         medium: fd.get('medium') as string,
         dimensions: fd.get('dimensions') as string,
@@ -167,12 +184,68 @@ const ArtGalleryManagement: React.FC<Props> = ({ artworks, onAdd, onUpdate, onDe
                   </select>
                 </div>
                 <div className="col-span-2">
-                  <label className="text-[10px] uppercase font-bold text-neutral-500 block mb-1">Primary Image URL</label>
-                  <input name="primaryImageUrl" defaultValue={editing?.primaryImageUrl} className="w-full bg-black border border-neutral-800 rounded-xl px-4 py-3 text-sm focus:border-white transition-colors outline-none" />
+                  <label className="text-[10px] uppercase font-bold text-neutral-500 block mb-1">Primary Image</label>
+                  <div className="flex gap-4 items-center">
+                    <div className="w-28 h-20 bg-black border border-neutral-800 rounded-xl overflow-hidden">
+                      <img src={primaryUrl || editing?.primaryImageUrl || ''} alt="primary" className="w-full h-full object-cover" />
+                    </div>
+                    <div className="flex-1">
+                      <input type="file" accept="image/*" onChange={async (e) => {
+                        const f = e.target.files?.[0];
+                        if (!f) return;
+                        try {
+                          setUploadingPrimary(true);
+                          const form = new FormData();
+                          form.append('file', f);
+                          form.append('type', f.type.startsWith('video') ? 'video' : 'image');
+                          const res = await fetch(`${API_BASE_URL}/media/upload`, {
+                            method: 'POST',
+                            headers: { Authorization: token ? `Bearer ${token}` : '' },
+                            body: form,
+                          });
+                          if (!res.ok) throw new Error('Upload failed');
+                          const data = await res.json();
+                          setPrimaryUrl(data.url || data.media?.url || null);
+                        } catch (err: any) {
+                          setSubmitError(err.message || 'Upload failed');
+                        } finally { setUploadingPrimary(false); }
+                      }} />
+                      <input name="primaryImageUrl" value={primaryUrl ?? (editing?.primaryImageUrl || '')} onChange={(e) => setPrimaryUrl(e.target.value || null)} className="w-full bg-black border border-neutral-800 rounded-xl px-4 py-3 text-sm focus:border-white transition-colors outline-none mt-2" />
+                      {uploadingPrimary && <div className="text-xs text-neutral-400">Uploading…</div>}
+                    </div>
+                  </div>
                 </div>
                 <div className="col-span-2">
-                  <label className="text-[10px] uppercase font-bold text-neutral-500 block mb-1">Hover Reveal Image URL</label>
-                  <input name="hoverImageUrl" defaultValue={editing?.hoverImageUrl} className="w-full bg-black border border-neutral-800 rounded-xl px-4 py-3 text-sm focus:border-white transition-colors outline-none" />
+                  <label className="text-[10px] uppercase font-bold text-neutral-500 block mb-1">Hover Reveal Image</label>
+                  <div className="flex gap-4 items-center">
+                    <div className="w-28 h-20 bg-black border border-neutral-800 rounded-xl overflow-hidden">
+                      <img src={hoverUrl || editing?.hoverImageUrl || ''} alt="hover" className="w-full h-full object-cover" />
+                    </div>
+                    <div className="flex-1">
+                      <input type="file" accept="image/*" onChange={async (e) => {
+                        const f = e.target.files?.[0];
+                        if (!f) return;
+                        try {
+                          setUploadingHover(true);
+                          const form = new FormData();
+                          form.append('file', f);
+                          form.append('type', f.type.startsWith('video') ? 'video' : 'image');
+                          const res = await fetch(`${API_BASE_URL}/media/upload`, {
+                            method: 'POST',
+                            headers: { Authorization: token ? `Bearer ${token}` : '' },
+                            body: form,
+                          });
+                          if (!res.ok) throw new Error('Upload failed');
+                          const data = await res.json();
+                          setHoverUrl(data.url || data.media?.url || null);
+                        } catch (err: any) {
+                          setSubmitError(err.message || 'Upload failed');
+                        } finally { setUploadingHover(false); }
+                      }} />
+                      <input name="hoverImageUrl" value={hoverUrl ?? (editing?.hoverImageUrl || '')} onChange={(e) => setHoverUrl(e.target.value || null)} className="w-full bg-black border border-neutral-800 rounded-xl px-4 py-3 text-sm focus:border-white transition-colors outline-none mt-2" />
+                      {uploadingHover && <div className="text-xs text-neutral-400">Uploading…</div>}
+                    </div>
+                  </div>
                 </div>
                 <div className="col-span-1">
                   <label className="text-[10px] uppercase font-bold text-neutral-500 block mb-1">Theme Color (Hex)</label>

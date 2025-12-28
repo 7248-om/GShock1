@@ -9,6 +9,15 @@ Required environment variables (create a `.env` file in `backend/`):
 - `FIREBASE_SERVICE_ACCOUNT_KEY` - (optional) JSON string of Firebase service account credentials. If not provided, the code expects a local file at `src/config/firebaseAdminKey.json` (not committed).
 - `PORT` - optional; defaults to `5000`.
 
+Image upload (ImageKit)
+- `IMAGEKIT_PUBLIC_KEY` - ImageKit public key (can be exposed in frontends).
+- `IMAGEKIT_PRIVATE_KEY` - ImageKit private key (server-side only).
+- `IMAGEKIT_URL_ENDPOINT` - your ImageKit URL endpoint (e.g. https://ik.imagekit.io/yourid)
+
+The backend exposes media endpoints:
+- `POST /api/media/upload` (admin only) — multipart form upload with `file` field; returns `{ url, media }`.
+- `GET /api/media` (admin only) — list uploaded media items.
+
 Install and run:
 
 ```bash

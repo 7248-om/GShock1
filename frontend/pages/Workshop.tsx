@@ -169,8 +169,30 @@ const Workshop: React.FC = () => {
       try {
         const res = await fetch(`${API_BASE_URL}/workshops`);
         if (!res.ok) throw new Error(`Failed to fetch workshops: ${res.status}`);
-        const data = await res.json();
-        if (!cancelled && Array.isArray(data)) setWorkshopsData(data);
+          const data = await res.json();
+          if (!cancelled && Array.isArray(data)) {
+            const mapped = data.map((w: any) => {
+              const iso = w.date || w.startTime || w.start || w.createdAt || w.updatedAt;
+              const dateObj = iso ? new Date(iso) : null;
+              const dateStr = dateObj ? dateObj.toISOString().slice(0, 10) : (w.date ? String(w.date).slice(0, 10) : '');
+              const timeStr = w.time || (dateObj ? dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : (w.startTime || ''));
+
+              return {
+                id: w._id || w.id || String(w._id || Date.now()),
+                _id: w._id,
+                title: w.title || w.name || 'Untitled Workshop',
+                description: w.description || w.desc || '',
+                date: dateStr,
+                time: timeStr,
+                price: typeof w.price === 'number' ? w.price : (w.fee || 0),
+                category: (w.tags && w.tags[0]) || w.category || (w.isActive ? 'Expert' : 'Breather'),
+                image: w.imageUrl || w.primaryImageUrl || null,
+                tags: w.tags || [],
+              } as WorkshopType;
+            });
+
+            setWorkshopsData(mapped.length ? mapped : WORKSHOPS);
+          }
       } catch (err) {
         if (!cancelled) setWorkshopsError(err instanceof Error ? err.message : String(err));
       } finally {

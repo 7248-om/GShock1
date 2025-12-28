@@ -1,13 +1,21 @@
 
 export type WorkshopType = {
-  id: number;
+  id: string;
+  _id?: string;
   title: string;
-  description: string;
-  date: string; // YYYY-MM-DD
-  time: string;
-  price: number; // 0 = free
-  image: string;
-  category: 'Breather' | 'Expert' | 'Foundations';
+  description?: string;
+  date?: string; // YYYY-MM-DD
+  startTime?: string;
+  endTime?: string;
+  time?: string;
+  price?: number; // 0 = free
+  image?: string | null;
+  imageUrl?: string | null;
+  primaryImageUrl?: string | null;
+  category?: 'Breather' | 'Expert' | 'Foundations' | string;
+  tags?: string[];
+  capacity?: number;
+  attendees?: string[];
 };
 
 export type FaqItemType = {
@@ -56,6 +64,7 @@ export enum LeadStatus {
 
 export interface MenuItem {
   id: string;
+  _id?: string;
   name: string;
   description: string;
   price: number;
@@ -64,13 +73,16 @@ export interface MenuItem {
   stockStatus: 'In Stock' | 'Out of Stock';
   roastLevel?: string;
   tastingNotes?: string;
-  tags: CoffeeTag[];
+  tags: CoffeeTag[] | string[];
+  isAvailable?: boolean;
 }
 
 export interface Artwork {
   id: string;
+  _id?: string;
   title: string;
-  artist: string;
+  artist?: string;
+  artistName?: string;
   year: string;
   medium: string;
   dimensions: string;
@@ -80,18 +92,25 @@ export interface Artwork {
   hoverImageUrl: string;
   themeColor: string;
   tastingNotes: string;
+  description?: string;
+  isAvailable?: boolean;
 }
 
 export interface Workshop {
   id: string;
+  _id?: string;
   title: string;
   description: string;
   startTime: string;
   endTime: string;
+  date?: string;
   category: WorkshopCategory;
   price: number;
   capacity: number;
   attendees: string[]; // User IDs
+  imageUrl?: string;
+  primaryImageUrl?: string;
+  tags?: string[];
 }
 
 export interface FranchiseLead {

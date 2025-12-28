@@ -1,7 +1,8 @@
 
 import React, { useState } from 'react';
-import { Search, Plus, Calendar, Users, X, Clock, Trash2 } from 'lucide-react';
+import { Search, Plus, Calendar, Users, X, Clock, Trash2, Image as ImageIcon } from 'lucide-react';
 import { Workshop, WorkshopCategory } from '../types';
+import { useAuth } from '../../context/AuthContext';
 
 interface Props {
   workshops: Workshop[];
@@ -15,6 +16,18 @@ const WorkshopManagement: React.FC<Props> = ({ workshops, onAdd, onUpdate, onDel
   const [editing, setEditing] = useState<Workshop | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const { token } = useAuth();
+  const API_BASE_URL = import.meta.env.VITE_BACKEND_API_URL || '/api';
+  const [uploading, setUploading] = useState(false);
+  const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (editing) {
+      setUploadedUrl(editing.imageUrl || editing.primaryImageUrl || null);
+    } else {
+      setUploadedUrl(null);
+    }
+  }, [editing]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -34,6 +47,7 @@ const WorkshopManagement: React.FC<Props> = ({ workshops, onAdd, onUpdate, onDel
         category: fd.get('category') as WorkshopCategory,
         price: parseFloat(fd.get('price') as string),
         capacity: parseInt(fd.get('capacity') as string),
+        imageUrl: uploadedUrl || (fd.get('imageUrl') as string) || null,
         attendees: editing?.attendees || [],
       } as Workshop;
       
@@ -168,6 +182,63 @@ const WorkshopManagement: React.FC<Props> = ({ workshops, onAdd, onUpdate, onDel
                     required 
                     className="w-full bg-black border border-neutral-800 rounded-xl px-4 py-3 text-sm focus:border-white transition-colors outline-none resize-none" 
                   />
+                </div>
+                <div>
+                  <label className="text-[10px] uppercase font-bold text-neutral-500 block mb-1">Workshop Image</label>
+                  <div className="flex gap-4 items-start">
+                    <div className="w-24 h-24 bg-black border border-neutral-800 rounded-xl flex items-center justify-center shrink-0 overflow-hidden">
+                      {uploadedUrl || editing?.imageUrl || editing?.primaryImageUrl ? (
+                        <img src={uploadedUrl || editing?.imageUrl || editing?.primaryImageUrl || ''} alt="preview" className="w-full h-full object-cover" />
+                      ) : (
+                        <ImageIcon className="text-neutral-700" size={32} />
+                      )}
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={async (e) => {
+                          const f = e.target.files?.[0];
+                          if (!f) return;
+                          try {
+                            setUploading(true);
+                            const form = new FormData();
+                            form.append('file', f);
+                            form.append('type', 'image');
+
+                            const res = await fetch(`${API_BASE_URL}/media/upload`, {
+                              method: 'POST',
+                              headers: {
+                                Authorization: token ? `Bearer ${token}` : '',
+                              },
+                              body: form,
+                            });
+
+                            if (!res.ok) {
+                              const err = await res.json().catch(() => ({}));
+                              throw new Error(err.message || `Upload failed: ${res.status}`);
+                            }
+
+                            const body = await res.json();
+                            setUploadedUrl(body.url || (body.media && body.media.url) || null);
+                          } catch (err: any) {
+                            setSubmitError(err.message || 'Upload failed');
+                          } finally {
+                            setUploading(false);
+                          }
+                        }}
+                        className="text-sm"
+                      />
+                      <input
+                        name="imageUrl"
+                        placeholder="https://..."
+                        value={uploadedUrl ?? (editing?.imageUrl || editing?.primaryImageUrl || '')}
+                        onChange={(e) => setUploadedUrl(e.target.value || null)}
+                        className="w-full bg-black border border-neutral-800 rounded-xl px-4 py-3 text-sm focus:border-white transition-colors outline-none"
+                      />
+                      {uploading && <div className="text-xs text-neutral-400">Uploading…</div>}
+                    </div>
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>

@@ -17,6 +17,22 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    category: {
+        type: String,
+        default: 'Coffee',
+    },
+    stockStatus: {
+        type: String,
+        enum: ['In Stock', 'Out of Stock'],
+        default: 'In Stock',
+    },
+    roastLevel: {
+        type: String,
+    },
+    tastingNotes: {
+        type: String,
+    },
+    tags: [String],
 });
 
 module.exports = mongoose.model('Product', productSchema);

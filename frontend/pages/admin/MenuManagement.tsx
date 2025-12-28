@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { Plus, X, Trash2, MoreVertical, Search, Image as ImageIcon } from 'lucide-react';
 import { MenuItem, Category, CoffeeTag } from '../types';
 
@@ -20,6 +21,18 @@ const MenuManagement: React.FC<MenuManagementProps> = ({
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const { token } = useAuth();
+  const API_BASE_URL = import.meta.env.VITE_BACKEND_API_URL || '/api';
+  const [uploading, setUploading] = useState(false);
+  const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (editingItem) {
+      setUploadedUrl(editingItem.imageUrl || null);
+    } else {
+      setUploadedUrl(null);
+    }
+  }, [editingItem]);
 
   const filteredItems = items.filter(item => 
     item.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -33,13 +46,15 @@ const MenuManagement: React.FC<MenuManagementProps> = ({
     try {
       const formData = new FormData(e.currentTarget);
       
+      const imageUrlVal = (uploadedUrl) ? uploadedUrl : (formData.get('imageUrl') as string) || 'https://picsum.photos/seed/coffee/400/400';
+
       const newItem: MenuItem = {
         id: editingItem?.id || `menu-${Date.now()}`,
         name: formData.get('name') as string,
         description: formData.get('description') as string,
         price: parseFloat(formData.get('price') as string),
         category: (formData.get('category') as Category) || Category.COFFEE,
-        imageUrl: formData.get('imageUrl') as string || 'https://picsum.photos/seed/coffee/400/400',
+        imageUrl: imageUrlVal,
         stockStatus: (formData.get('status') as 'In Stock' | 'Out of Stock') || 'In Stock',
         tags: [],
       };
@@ -238,21 +253,60 @@ const MenuManagement: React.FC<MenuManagementProps> = ({
                 </div>
 
                 <div className="col-span-2">
-                  <label className="block text-[10px] uppercase font-bold text-neutral-500 mb-2">Image URL</label>
-                  <div className="flex gap-4">
+                  <label className="block text-[10px] uppercase font-bold text-neutral-500 mb-2">Image</label>
+                  <div className="flex gap-4 items-center">
                     <div className="w-20 h-20 bg-black border border-neutral-800 rounded-xl flex items-center justify-center shrink-0 overflow-hidden">
-                      {editingItem?.imageUrl ? (
-                        <img src={editingItem.imageUrl} alt="preview" className="w-full h-full object-cover" />
+                      {uploadedUrl || editingItem?.imageUrl ? (
+                        <img src={uploadedUrl || editingItem?.imageUrl} alt="preview" className="w-full h-full object-cover" />
                       ) : (
                         <ImageIcon className="text-neutral-700" />
                       )}
                     </div>
-                    <input 
-                      name="imageUrl"
-                      placeholder="https://..."
-                      defaultValue={editingItem?.imageUrl || ''}
-                      className="flex-1 bg-black border border-neutral-800 rounded-xl px-4 py-3 text-sm focus:border-neutral-500 outline-none h-20"
-                    />
+                    <div className="flex-1 space-y-2">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={async (e) => {
+                          const f = e.target.files?.[0];
+                          if (!f) return;
+                          try {
+                            setUploading(true);
+                            setUploadedUrl(null);
+                            const form = new FormData();
+                            form.append('file', f);
+                            form.append('type', f.type.startsWith('video') ? 'video' : 'image');
+
+                            const res = await fetch(`${API_BASE_URL}/media/upload`, {
+                              method: 'POST',
+                              headers: {
+                                Authorization: token ? `Bearer ${token}` : '',
+                              },
+                              body: form,
+                            });
+
+                            if (!res.ok) {
+                              const err = await res.json().catch(() => ({}));
+                              throw new Error(err.message || `Upload failed: ${res.status}`);
+                            }
+
+                            const body = await res.json();
+                            setUploadedUrl(body.url || (body.media && body.media.url) || null);
+                          } catch (err: any) {
+                            setSubmitError(err.message || 'Upload failed');
+                          } finally {
+                            setUploading(false);
+                          }
+                        }}
+                      />
+                      <input
+                        name="imageUrl"
+                        placeholder="https://..."
+                        value={uploadedUrl ?? (editingItem?.imageUrl || '')}
+                        onChange={(e) => setUploadedUrl(e.target.value || null)}
+                        className="w-full bg-black border border-neutral-800 rounded-xl px-4 py-3 text-sm focus:border-neutral-500 outline-none h-12"
+                      />
+                      {uploading && <div className="text-xs text-neutral-400">Uploading…</div>}
+                    </div>
                   </div>
                 </div>
               </div>
