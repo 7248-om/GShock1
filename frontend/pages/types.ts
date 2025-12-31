@@ -111,18 +111,27 @@ export interface Workshop {
   imageUrl?: string;
   primaryImageUrl?: string;
   tags?: string[];
+  tutorId?: string;
+  tutorName?: string;
+  tutorEmail?: string;
+  status?: 'Pending' | 'Approved' | 'Rejected';
+  createdAt?: string;
 }
-
 export interface FranchiseLead {
-  id: string;
+  _id?: string;
+  id?: string;
   name: string;
   email: string;
-  phone: string;
-  city: string;
-  investment: string;
-  message: string;
+  phone?: string;
+  city?: string;
+  budgetRange?: string;
+  investment?: string;
+  message?: string;
   status: LeadStatus;
-  createdAt: string;
+  userId?: string;
+  userName?: string;
+  userEmail?: string;
+  createdAt?: string;
 }
 
 export interface FAQ {

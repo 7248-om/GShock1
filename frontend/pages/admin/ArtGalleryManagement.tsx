@@ -44,6 +44,7 @@ const ArtGalleryManagement: React.FC<Props> = ({ artworks, onAdd, onUpdate, onDe
         id: editing?.id || Math.random().toString(36).substr(2, 9),
         title: fd.get('title') as string,
         artistName: fd.get('artist') as string,
+        description: fd.get('description') as string || '',
         year: fd.get('year') as string,
         medium: fd.get('medium') as string,
         dimensions: fd.get('dimensions') as string,
@@ -156,9 +157,13 @@ const ArtGalleryManagement: React.FC<Props> = ({ artworks, onAdd, onUpdate, onDe
                   <label className="text-[10px] uppercase font-bold text-coffee-500 block mb-1">Title</label>
                   <input name="title" defaultValue={editing?.title} required className="w-full bg-coffee-950 border border-coffee-800 rounded-xl px-4 py-3 text-sm text-coffee-100 focus:border-coffee-500 transition-colors outline-none" />
                 </div>
+                <div className="col-span-2">
+                  <label className="text-[10px] uppercase font-bold text-coffee-500 block mb-1">Description</label>
+                  <textarea name="description" defaultValue={editing?.description} rows={3} className="w-full bg-coffee-950 border border-coffee-800 rounded-xl px-4 py-3 text-sm text-coffee-100 focus:border-coffee-500 transition-colors outline-none resize-none" placeholder="Describe the artwork..." />
+                </div>
                 <div className="col-span-1">
                   <label className="text-[10px] uppercase font-bold text-coffee-500 block mb-1">Artist</label>
-                  <input name="artist" defaultValue={editing?.artist} required className="w-full bg-coffee-950 border border-coffee-800 rounded-xl px-4 py-3 text-sm text-coffee-100 focus:border-coffee-500 transition-colors outline-none" />
+                  <input name="artist" defaultValue={editing?.artistName} required className="w-full bg-coffee-950 border border-coffee-800 rounded-xl px-4 py-3 text-sm text-coffee-100 focus:border-coffee-500 transition-colors outline-none" />
                 </div>
                 <div className="col-span-1">
                   <label className="text-[10px] uppercase font-bold text-coffee-500 block mb-1">Year</label>

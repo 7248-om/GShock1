@@ -4,34 +4,42 @@ const artworkSchema = new mongoose.Schema(
   {
     title: {
       type: String,
-      required: true,
+      required: [true, 'Title is required'],
+      trim: true,
     },
     description: {
       type: String,
+      trim: true,
     },
 
     year: {
       type: String,
+      trim: true,
     },
 
     medium: {
       type: String,
+      trim: true,
     },
 
     dimensions: {
       type: String,
+      trim: true,
     },
 
     primaryImageUrl: {
       type: String,
+      trim: true,
     },
 
     hoverImageUrl: {
       type: String,
+      trim: true,
     },
 
     price: {
       type: Number,
+      default: 0,
     },
 
     artist: {
@@ -40,6 +48,7 @@ const artworkSchema = new mongoose.Schema(
     },
     artistName: {
       type: String,
+      trim: true,
     },
 
     status: {
@@ -50,9 +59,11 @@ const artworkSchema = new mongoose.Schema(
 
     themeColor: {
       type: String,
+      default: '#000000',
     },
     tastingNotes: {
       type: String,
+      trim: true,
     },
     tags: [
       {

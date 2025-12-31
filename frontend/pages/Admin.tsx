@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Layout from './admin/Layout';
@@ -50,13 +50,13 @@ const Admin: React.FC = () => {
     isStoreOpen: true
   });
 
-  // Axios instance
-  const axiosInstance = axios.create({
+  // Axios instance - recreate when token changes
+  const axiosInstance = useMemo(() => axios.create({
     baseURL: API_BASE_URL,
     headers: {
-      Authorization: `Bearer ${token}`,
+      Authorization: token ? `Bearer ${token}` : '',
     },
-  });
+  }), [token]);
 
   // --- Hooks must run regardless of loading state ---
   
@@ -85,12 +85,14 @@ const Admin: React.FC = () => {
           artworksRes,
           workshopsRes,
           usersRes,
+          franchisesRes,
         ] = await Promise.all([
           axiosInstance.get('/products'),
           axiosInstance.get('/orders'),
           axiosInstance.get('/artworks'),
-          axiosInstance.get('/workshops'),
+          axiosInstance.get('/workshops/admin/all'),
           axiosInstance.get('/admin/users'),
+          axiosInstance.get('/franchises'),
         ]);
 
         setMenuItems(productsRes.data || []);
@@ -98,6 +100,7 @@ const Admin: React.FC = () => {
         setArtworks(artworksRes.data || []);
         setWorkshops(workshopsRes.data || []);
         setUsers(usersRes.data || []);
+        setLeads(franchisesRes.data || []);
 
         const totalRevenue = ordersRes.data?.reduce((sum: number, order: Order) => {
           const orderTotal = order.items?.reduce((itemSum: number, item: any) => itemSum + (item.price * item.quantity), 0) || 0;
@@ -221,6 +224,24 @@ const Admin: React.FC = () => {
     }
   };
 
+  const handleUpdateWorkshopStatus = async (id: string, status: string) => {
+    try {
+      const response = await axiosInstance.put(`/workshops/${id}/status`, { status });
+      setWorkshops(workshops.map(w => (w._id || w.id) === id ? response.data.workshop : w));
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || error.message || 'Failed to update workshop status');
+    }
+  };
+
+  const handleUpdateFranchiseStatus = async (id: string, status: string) => {
+    try {
+      const response = await axiosInstance.put(`/franchises/${id}/status`, { status });
+      setLeads(leads.map(l => (l._id || l.id) === id ? response.data.lead : l));
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || error.message || 'Failed to update franchise status');
+    }
+  };
+
   // --- MOVED DOWN: Conditional returns must happen AFTER all hooks ---
   
   if (loading || !user || user.role !== 'admin') {
@@ -280,8 +301,7 @@ const Admin: React.FC = () => {
           element={
             <WorkshopManagement 
               workshops={workshops} 
-              onAdd={handleAddWorkshop} 
-              onUpdate={handleUpdateWorkshop}
+              onUpdateStatus={handleUpdateWorkshopStatus}
               onDelete={handleDeleteWorkshop}
             />
           } 
@@ -291,7 +311,7 @@ const Admin: React.FC = () => {
           element={
             <FranchiseManagement 
               leads={leads} 
-              onUpdateStatus={(id, s) => setLeads(leads.map(l => l.id === id ? { ...l, status: s } : l))} 
+              onUpdateStatus={handleUpdateFranchiseStatus}
             />
           } 
         />

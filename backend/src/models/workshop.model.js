@@ -4,7 +4,7 @@ const workshopSchema = new mongoose.Schema(
   {
     title: {
       type: String,
-      required: true,
+      required: [true, 'Workshop title is required'],
     },
 
     description: {
@@ -13,7 +13,7 @@ const workshopSchema = new mongoose.Schema(
 
     date: {
       type: Date,
-      required: true,
+      required: [true, 'Workshop date is required'],
     },
 
     startTime: {
@@ -61,6 +61,25 @@ const workshopSchema = new mongoose.Schema(
         ref: 'User',
       },
     ],
+
+    tutorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
+
+    tutorName: {
+      type: String,
+    },
+
+    tutorEmail: {
+      type: String,
+    },
+
+    status: {
+      type: String,
+      enum: ['Pending', 'Approved', 'Rejected'],
+      default: 'Pending',
+    },
 
     isActive: {
       type: Boolean,

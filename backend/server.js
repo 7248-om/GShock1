@@ -7,7 +7,6 @@ const morgan = require('morgan');
 const connectDB = require('./src/config/db');
 const routes = require('./src/routes');
 const { notFoundHandler, errorHandler } = require('./src/middleware/error.middleware');
-const { seedWorkshops } = require('./src/seeds/workshops.seed');
 
 const app = express();
 
@@ -15,6 +14,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 
 // Routes
 app.use('/api', routes);
@@ -31,8 +35,8 @@ async function startServer() {
   try {
     await connectDB();
 
-    // Seed workshops data on startup
-    await seedWorkshops();
+    // NOTE: Seeding disabled on startup to avoid duplicate inserts.
+    // If you need to seed again, run the seed scripts manually.
 
     app.listen(PORT, () => {
       // eslint-disable-next-line no-console

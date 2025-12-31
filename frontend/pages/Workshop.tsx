@@ -3,17 +3,236 @@ import { FAQS } from './constants'; // Assuming you have this file
 import { WorkshopType } from './types'; // Assuming you have this file
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
 
 gsap.registerPlugin(ScrollTrigger);
 
-// --- REFINED PALETTE (High Contrast / Sophisticated) ---
-const THEME = {
-  espresso: '#3E2723', // Deepest Brown (Hero BG, Primary Text)
-  bronze: '#966328',   // Rich Caramel (Buttons, Borders)
-  gold: '#D99A46',     // Golden Earth (Highlights, Hover states)
-  latte: '#F5EFE6',    // Very Pale Beige (FAQ BG, Sidebar BG)
-  cream: '#FFFCF2',    // Almost White (Main Page BG)
-  white: '#FFFFFF'
+/* ================= WORKSHOP SUBMISSION FORM ================= */
+
+const WorkshopSubmissionForm: React.FC = () => {
+  const { user } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    date: '',
+    startTime: '',
+    endTime: '',
+    price: '0',
+    capacity: '',
+    category: 'Breather',
+    imageUrl: '',
+  });
+
+  const API_BASE_URL = import.meta.env.VITE_BACKEND_API_URL || '/api';
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) {
+      setSubmitMessage({ type: 'error', text: 'Please login to submit a workshop' });
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitMessage(null);
+
+    try {
+      const response = await axios.post(`${API_BASE_URL}/workshops`, {
+        ...formData,
+        price: parseFloat(formData.price),
+        capacity: parseInt(formData.capacity) || 0,
+        image: formData.imageUrl,
+        imageUrl: formData.imageUrl,
+        primaryImageUrl: formData.imageUrl,
+      }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` }
+      });
+
+      setSubmitMessage({ 
+        type: 'success', 
+        text: 'Workshop submitted successfully! Admin will review and approve.' 
+      });
+      setFormData({
+        title: '',
+        description: '',
+        date: '',
+        startTime: '',
+        endTime: '',
+        price: '0',
+        capacity: '',
+        category: 'Breather',
+        imageUrl: '',
+      });
+      setTimeout(() => setIsOpen(false), 2000);
+    } catch (error: any) {
+      setSubmitMessage({ 
+        type: 'error', 
+        text: error.response?.data?.message || 'Failed to submit workshop' 
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (!user) return null;
+
+  return (
+    <div className="mb-12">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full px-6 py-4 bg-gold text-onyx font-black uppercase tracking-widest text-sm rounded-full hover:bg-[#FFB81D] transition-colors"
+      >
+        {isOpen ? '✕ Close' : '+ Become a Tutor - Submit Workshop'}
+      </button>
+
+      {isOpen && (
+        <div className="mt-6 bg-cream border border-gold rounded-3xl p-8">
+          <h3 className="text-2xl font-serif font-bold text-coffee mb-6">Submit Your Workshop</h3>
+          
+          {submitMessage && (
+            <div className={`mb-6 p-4 rounded-lg ${submitMessage.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+              {submitMessage.text}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block text-sm font-bold text-coffee mb-2">Workshop Title *</label>
+              <input
+                type="text"
+                name="title"
+                value={formData.title}
+                onChange={handleInputChange}
+                required
+                placeholder="e.g., Advanced Espresso Pulling Techniques"
+                className="w-full px-4 py-3 border border-coffee/30 rounded-lg focus:outline-none focus:border-gold"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-coffee mb-2">Description</label>
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                placeholder="Tell us about your workshop..."
+                rows={4}
+                className="w-full px-4 py-3 border border-coffee/30 rounded-lg focus:outline-none focus:border-gold"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-bold text-coffee mb-2">Date *</label>
+                <input
+                  type="date"
+                  name="date"
+                  value={formData.date}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-4 py-3 border border-coffee/30 rounded-lg focus:outline-none focus:border-gold"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-coffee mb-2">Category</label>
+                <select
+                  name="category"
+                  value={formData.category}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-coffee/30 rounded-lg focus:outline-none focus:border-gold"
+                >
+                  <option>Breather</option>
+                  <option>Foundations</option>
+                  <option>Expert</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-bold text-coffee mb-2">Start Time</label>
+                <input
+                  type="time"
+                  name="startTime"
+                  value={formData.startTime}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-coffee/30 rounded-lg focus:outline-none focus:border-gold"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-coffee mb-2">End Time</label>
+                <input
+                  type="time"
+                  name="endTime"
+                  value={formData.endTime}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-coffee/30 rounded-lg focus:outline-none focus:border-gold"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-bold text-coffee mb-2">Price (₹)</label>
+                <input
+                  type="number"
+                  name="price"
+                  value={formData.price}
+                  onChange={handleInputChange}
+                  min="0"
+                  placeholder="0 for free"
+                  className="w-full px-4 py-3 border border-coffee/30 rounded-lg focus:outline-none focus:border-gold"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-coffee mb-2">Capacity</label>
+                <input
+                  type="number"
+                  name="capacity"
+                  value={formData.capacity}
+                  onChange={handleInputChange}
+                  min="1"
+                  placeholder="Max participants"
+                  className="w-full px-4 py-3 border border-coffee/30 rounded-lg focus:outline-none focus:border-gold"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-coffee mb-2">Image URL</label>
+              <input
+                type="url"
+                name="imageUrl"
+                value={formData.imageUrl}
+                onChange={handleInputChange}
+                placeholder="https://example.com/image.jpg"
+                className="w-full px-4 py-3 border border-coffee/30 rounded-lg focus:outline-none focus:border-gold"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full px-6 py-3 bg-coffee text-cream font-black uppercase tracking-widest rounded-lg hover:bg-coffee/90 disabled:opacity-50 transition-colors"
+            >
+              {isSubmitting ? 'Submitting...' : 'Submit Workshop'}
+            </button>
+          </form>
+        </div>
+      )}
+    </div>
+  );
 };
 
 /* ================= WORKSHOP CARD ================= */
@@ -343,8 +562,10 @@ const Workshop: React.FC = () => {
 
           {/* GRID */}
           <div className="flex-1">
-            {!loading && !error && filteredAndSortedWorkshops.length > 0 ? (
-              <div className="workshop-grid grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-12">
+            <WorkshopSubmissionForm />
+            
+            {filteredAndSortedWorkshops.length > 0 ? (
+              <div className="workshop-grid grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-12 gap-y-16">
                 {filteredAndSortedWorkshops.map(w => (
                   <WorkshopCard key={w.id} workshop={w} />
                 ))}

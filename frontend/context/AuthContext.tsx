@@ -31,12 +31,13 @@ const API_BASE_URL = typeof import.meta !== 'undefined' && import.meta.env
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
-  const [token, setToken] = useState<string | null>(null); // backend JWT
+  const [token, setToken] = useState<string | null>(localStorage.getItem('authToken')); // backend JWT
   const [loading, setLoading] = useState(true);
 
   // Called after Firebase login to sync/create user in backend and get backend JWT
   const syncWithBackend = async (idToken: string) => {
     try {
+      console.log('Syncing with backend. API_BASE_URL:', API_BASE_URL);
       const response = await axios.post(`${API_BASE_URL}/auth/login`, {
         idToken,
       });
@@ -47,6 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error('Invalid response from backend: missing user or token');
       }
 
+      console.log('Backend sync successful. User:', backendUser);
       setUser(backendUser);
       setToken(backendToken);
       localStorage.setItem('authToken', backendToken);
@@ -57,6 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (axios.isAxiosError(error)) {
         console.error('Backend error response:', error.response?.data);
         console.error('Backend error status:', error.response?.status);
+        console.error('Backend error message:', error.message);
       }
       
       setUser(null);
@@ -89,7 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (userCredential) {
         try {
           const idToken = await userCredential.getIdToken();
-          console.log('Firebase user authenticated, syncing with backend...');
+          console.log('Firebase user authenticated. Email:', userCredential.email);
           await syncWithBackend(idToken);
         } catch (error) {
           console.error('Failed to sync with backend after Firebase auth:', error);
