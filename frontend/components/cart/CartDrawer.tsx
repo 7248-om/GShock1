@@ -117,7 +117,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               </div>
               <button
                 onClick={onCheckout}
-                className="w-full bg-coffee-primary text-white py-5 text-[10px] font-black uppercase tracking-widest hover:bg-coffee-mid transition-colors flex justify-between px-8 items-center group"
+                className="w-full bg-[#3E2723] text-white py-5 text-[10px] font-black uppercase tracking-widest hover:bg-[#3E2723] transition-colors flex justify-between px-8 items-center group"
               >
                 <span>Proceed to Checkout</span>
                 <span className="group-hover:translate-x-2 transition-transform">→</span>

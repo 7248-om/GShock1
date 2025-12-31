@@ -7,13 +7,13 @@ export const CoffeeFAQ: React.FC = () => {
 
   return (
     <section className="max-w-3xl mx-auto py-16 px-4">
-      <h2 className="text-3xl font-bold text-center mb-10">Frequently Asked Questions</h2>
+      <h2 className="text-3xl font-bold text-center mb-10 text-[#3E2723]">Frequently Asked Questions</h2>
       <div className="space-y-4">
         {FAQ_ITEMS.map((item, index) => (
           <div key={index} className="border-b border-gray-200 pb-4">
             <button
               onClick={() => setOpenIndex(openIndex === index ? null : index)}
-              className="w-full flex justify-between items-center text-left py-2 hover:text-amber-900 transition-colors"
+              className="w-full flex justify-between items-center text-left py-2 text-[#3E2723] hover:text-amber-600 transition-colors"
             >
               <span className="font-semibold text-lg">{item.question}</span>
               <span className={`transform transition-transform text-2xl ${openIndex === index ? 'rotate-45' : ''}`}>

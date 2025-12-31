@@ -56,7 +56,7 @@ export const CoffeeMenu: React.FC<CoffeeMenuProps> = ({ onAddToCart }) => {
       {/* Editorial Header */}
       <header className="pt-24 pb-16 text-center">
         <div className="mb-4">
-          <h1 className="text-6xl md:text-[140px] font-black tracking-tighter leading-none mb-10 font-oswald uppercase select-none text-coffee-dark">
+          <h1 className="text-6xl md:text-[140px] font-black tracking-tighter leading-none mb-10 font-oswald uppercase select-none text-[#3E2723]">
             MENU
           </h1>
 
@@ -65,7 +65,7 @@ export const CoffeeMenu: React.FC<CoffeeMenuProps> = ({ onAddToCart }) => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-12 mt-4 px-2 text-left">
           <div className="max-w-md">
             <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2">THE RABUSTE COLLECTION</h4>
-            <p className="text-sm text-gray-500 font-medium leading-relaxed">
+            <p className="text-sm text-[#3E2723] font-medium leading-relaxed">
               Curated specialty Robusta. Bold, high-crema profiles engineered for the urban decision-maker, accompanied by artisanal bites.
             </p>
           </div>
@@ -74,7 +74,7 @@ export const CoffeeMenu: React.FC<CoffeeMenuProps> = ({ onAddToCart }) => {
             <button 
               onClick={() => setActiveCategory('All')}
               className={`text-[10px] font-black uppercase tracking-widest px-8 py-4 border transition-all flex-grow md:flex-none ${
-                activeCategory === 'All' ? 'bg-coffee-primary text-white border-coffee-primary' : 'bg-white text-black border-gray-100 hover:border-coffee-mid hover:text-coffee-mid'
+                activeCategory === 'All' ? 'bg-[#3E2723] text-white border-[#3E2723]' : 'bg-white text-black border-gray-100 hover:border-[#3E2723] hover:text-[#3E2723]'
               }`}
             >
               All
@@ -84,7 +84,7 @@ export const CoffeeMenu: React.FC<CoffeeMenuProps> = ({ onAddToCart }) => {
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
                 className={`text-[10px] font-black uppercase tracking-widest px-8 py-4 border transition-all flex-grow md:flex-none ${
-                  activeCategory === cat ? 'bg-coffee-primary text-white border-coffee-primary' : 'bg-white text-black border-gray-100 hover:border-coffee-mid hover:text-coffee-mid'
+                  activeCategory === cat ? 'bg-[#3E2723] text-white border-[#3E2723]' : 'bg-white text-[#3E2723] border-gray-100 hover:border-[#3E2723] hover:text-[#3E2723]'
                 }`}
               >
                 {cat}

@@ -20,7 +20,7 @@ export const CoffeeCard: React.FC<CoffeeCardProps> = ({ item, onPreOrder }) => {
         />
         
         {/* Quick Add Overlay Bar */}
-        <div className="absolute bottom-0 left-0 w-full transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out bg-coffee-primary/90 backdrop-blur-md z-10">
+        <div className="absolute bottom-0 left-0 w-full transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out bg-[#3E2723] backdrop-blur-md z-10">
           <button
             onClick={() => onPreOrder(item)}
             className="w-full text-white py-4 text-[10px] font-black uppercase tracking-[0.3em] hover:bg-coffee-mid transition-colors"
