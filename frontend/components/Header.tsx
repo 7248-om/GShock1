@@ -47,8 +47,8 @@ const Header: React.FC = () => {
     {
       name: 'Why Robusta',
       links: [
-        { label: 'What is Robusta?', path: '/' },
-        { label: 'Flavor & Strength', path: '/' },
+        { label: 'What is Robusta?', path: '/about' },
+        { label: 'Flavor & Strength', path: 'about' },
       ],
     },
     {

@@ -28,7 +28,7 @@ const Home: React.FC = () => {
 
       <SplitSection
         alignment="left"
-        mediaUrl="https://images.unsplash.com/photo-1511920170033-f8396924c348"
+        mediaUrl="https://ik.imagekit.io/btpcp9tvm/GShock/rabuste-coffee-pic.jpeg"
         mediaType="image"
         title="Why Robusta?"
         text="Robusta coffee is bold, powerful, and often misunderstood. At Rabuste, we focus exclusively on premium Robusta beans to showcase their strength, rich body, and higher caffeine content — redefining what great coffee can be."
@@ -57,7 +57,7 @@ const Home: React.FC = () => {
 
       <SplitSection
         alignment="right"
-        mediaUrl="https://images.unsplash.com/photo-1515378791036-0648a3ef77b2"
+        mediaUrl="https://ik.imagekit.io/btpcp9tvm/GShock/art-culture.png"
         mediaType="image"
         title="Coffee × Art × Culture"
         text="Rabuste blends coffee culture with fine art and creativity. Our café doubles as a micro art gallery, showcasing rotating works from emerging and local artists."
@@ -68,14 +68,14 @@ const Home: React.FC = () => {
 
       <DoubleSplit 
         left={{
-          mediaUrl: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4",
+          mediaUrl: "https://ik.imagekit.io/btpcp9tvm/GShock/workshop.png",
           mediaType: "image",
           title: "Workshops & Experiences",
           text: "From coffee brewing sessions to creative workshops, Rabuste hosts intimate, community-driven experiences that inspire learning and connection.",
           link: "#"
         }}
         right={{
-          mediaUrl: "https://images.unsplash.com/photo-1528698827591-e19ccd7bc23d",
+          mediaUrl: "https://ik.imagekit.io/btpcp9tvm/GShock/workshop-community.png",
           mediaType: "image",
           title: "Community at the Core",
           text: "Every Rabuste café is designed to feel local, welcoming, and human — a place where people come together over shared experiences.",
@@ -86,7 +86,7 @@ const Home: React.FC = () => {
 
       <SplitSection
         alignment="left"
-        mediaUrl="https://images.unsplash.com/photo-1498804103079-a6351b050096"
+        mediaUrl="https://ik.imagekit.io/btpcp9tvm/GShock/inside-cozy.png"
         mediaType="image"
         title="Designed for Experience"
         text="Our spaces are compact, cozy, and thoughtfully designed to balance efficiency with atmosphere — perfect for quick visits or lingering conversations."
