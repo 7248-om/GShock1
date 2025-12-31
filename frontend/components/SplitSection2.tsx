@@ -13,7 +13,7 @@ interface SplitSectionProps {
   theme?: 'light' | 'dark';
 }
 
-const SplitSection: React.FC<SplitSectionProps> = ({ 
+const SplitSection2: React.FC<SplitSectionProps> = ({ 
   alignment, 
   mediaUrl, 
   mediaType, 
@@ -105,4 +105,4 @@ const SplitSection: React.FC<SplitSectionProps> = ({
   );
 };
 
-export default SplitSection;
+export default SplitSection2;
