@@ -8,6 +8,7 @@ import Arches from '../components/Arches';
 import GridMenu from '../components/GridMenu';
 import SplitSection2 from '@/components/SplitSection2';
 import Highlights from '@/components/Highlights';
+import SuggestionSection from '@/components/SuggestionSection';
 
 const Home: React.FC = () => {
   const [showPopup, setShowPopup] = useState(false);
@@ -153,6 +154,7 @@ const Home: React.FC = () => {
         theme="dark"
       />
       <Highlights />
+      <SuggestionSection />
       <Arches />
       {/* <SplitSection
         alignment="left"

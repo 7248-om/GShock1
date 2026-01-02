@@ -12,6 +12,7 @@ const orderRoutes = require('./order.routes');
 const franchiseRoutes = require('./franchise.routes');
 const paymentRoutes = require('./payment.routes');
 const reelRoutes = require('./reel.routes');
+const suggestionRoutes = require('./suggestion.routes');
 
 const router = express.Router();
 
@@ -27,5 +28,6 @@ router.use('/orders', orderRoutes);
 router.use('/franchises', franchiseRoutes);
 router.use('/payments', paymentRoutes);
 router.use('/reels', reelRoutes);
+router.use('/suggestions', suggestionRoutes);
 
 module.exports = router;

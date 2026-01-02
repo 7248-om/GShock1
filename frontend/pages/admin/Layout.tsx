@@ -11,7 +11,8 @@ import {
   Briefcase,
   GraduationCap,
   ShoppingBag,
-  Film
+  Film,
+  Lightbulb
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -63,6 +64,9 @@ const Layout: React.FC<LayoutProps> = ({ children, isStoreOpen, onToggleStore })
           </NavLink>
           <NavLink to="/admin/reels" className={({ isActive }) => `flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${isActive ? 'bg-coffee-100 text-coffee-950 shadow-lg shadow-coffee-900/50' : 'text-coffee-500 hover:text-coffee-100 hover:bg-coffee-900'}`}>
             <Film size={18} /> Reels
+          </NavLink>
+          <NavLink to="/admin/suggestions" className={({ isActive }) => `flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${isActive ? 'bg-coffee-100 text-coffee-950 shadow-lg shadow-coffee-900/50' : 'text-coffee-500 hover:text-coffee-100 hover:bg-coffee-900'}`}>
+            <Lightbulb size={18} /> Suggestions
           </NavLink>
           <NavLink to="/admin/users" className={({ isActive }) => `flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${isActive ? 'bg-coffee-100 text-coffee-950 shadow-lg shadow-coffee-900/50' : 'text-coffee-500 hover:text-coffee-100 hover:bg-coffee-900'}`}>
             <Users size={18} /> Users
