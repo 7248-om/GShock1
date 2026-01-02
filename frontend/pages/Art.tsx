@@ -68,7 +68,7 @@ const Art: React.FC = () => {
   }, [filteredArtworks, selectedMediums, selectedStatuses]);
 
   return (
-    <div className="min-h-screen bg-cream font-sans text-brown overflow-x-hidden">
+    <div className="min-h-screen bg-cream font-sans text-[#3E2723] overflow-x-hidden">
       <main className="max-w-[1700px] mx-auto px-6 md:px-12 pt-24 pb-16 flex">
         <Sidebar
           isOpen={isSidebarOpen}
@@ -103,7 +103,7 @@ const Art: React.FC = () => {
 
           {filteredArtworks.length === 0 && (
             <div className="py-40 text-center">
-              <p className="text-[11px] font-black tracking-[0.4em] uppercase text-brown/50 mb-6">
+              <p className="text-[11px] font-black tracking-[0.4em] uppercase text-[#3E2723]/50 mb-6">
                 No matching pieces in this collection.
               </p>
               <button
@@ -111,7 +111,7 @@ const Art: React.FC = () => {
                   setSelectedMediums([]);
                   setSelectedStatuses([]);
                 }}
-                className="text-[12px] font-bold underline underline-offset-8 text-brown hover:text-brown/70 transition-colors"
+                className="text-[12px] font-bold underline underline-offset-8 text-[#3E2723] hover:text-[#3E2723]/70 transition-colors"
               >
                 Clear filters
               </button>

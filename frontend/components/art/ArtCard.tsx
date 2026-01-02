@@ -16,7 +16,7 @@ const ArtCard: React.FC<ArtCardProps> = ({ artwork }) => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="relative aspect-square bg-cream p-10 overflow-hidden flex items-center justify-center border border-brown/20 group-hover:border-brown transition-colors">
+      <div className="relative aspect-square bg-cream p-10 overflow-hidden flex items-center justify-center border border-[#3E2723]/20 group-hover:border-[#3E2723] transition-colors">
         <img
           src={artwork.primaryImage}
           alt={artwork.title}
@@ -34,13 +34,13 @@ const ArtCard: React.FC<ArtCardProps> = ({ artwork }) => {
         />
 
         <div
-          className={`absolute inset-x-0 bottom-0 border-t border-brown/20 py-4 transition-all duration-300 ${
-            isHovered ? 'translate-y-0 bg-brown' : 'translate-y-full bg-cream'
+          className={`absolute inset-x-0 bottom-0 border-t border-[#3E2723]/20 py-4 transition-all duration-300 ${
+            isHovered ? 'translate-y-0 bg-[#3E2723]' : 'translate-y-full bg-cream'
           }`}
         >
           <p
             className={`text-[11px] font-black tracking-[0.2em] text-center uppercase transition-colors ${
-              isHovered ? 'text-cream' : 'text-brown'
+              isHovered ? 'text-cream' : 'text-[#3E2723]'
             }`}
           >
             View product
@@ -50,15 +50,15 @@ const ArtCard: React.FC<ArtCardProps> = ({ artwork }) => {
 
       <div className="mt-5 flex flex-col">
         <div className="flex justify-between items-baseline">
-          <h3 className="text-[13px] font-bold uppercase leading-none truncate pr-4 text-brown">
+          <h3 className="text-[13px] font-bold uppercase leading-none truncate pr-4 text-[#3E2723]">
             {artwork.title}
           </h3>
-          <span className="text-[13px] font-medium text-brown">
+          <span className="text-[13px] font-medium text-[#3E2723]">
             ${artwork.price.toFixed(2)}
           </span>
         </div>
 
-        <p className="mt-2 text-[10px] uppercase tracking-widest font-bold text-brown/60">
+        <p className="mt-2 text-[10px] uppercase tracking-widest font-bold text-[#3E2723]/60">
           {artwork.artist} | {artwork.medium} | {artwork.dimensions}
         </p>
       </div>

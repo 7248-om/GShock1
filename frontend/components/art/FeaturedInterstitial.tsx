@@ -9,7 +9,7 @@ const FeaturedInterstitial: React.FC = () => {
         className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
       />
 
-      <div className="absolute inset-0 bg-brown/35 group-hover:bg-brown/45 transition-colors" />
+      <div className="absolute inset-0 bg-[#3E2723]/35 group-hover:bg-[#3E2723]/45 transition-colors" />
 
       <div className="relative z-10 flex flex-col items-center p-6 text-cream">
         <h2 className="text-4xl lg:text-5xl font-serif italic font-black leading-tight tracking-tighter mb-1">

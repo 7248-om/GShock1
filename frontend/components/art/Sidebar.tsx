@@ -35,17 +35,17 @@ const Sidebar: React.FC<SidebarProps> = ({
   return (
     <aside className="w-64 flex-shrink-0 pr-12 hidden lg:block sticky top-12 h-fit bg-cream">
       <div className="flex justify-between items-baseline mb-10">
-        <h2 className="text-3xl font-serif font-black text-brown">Filters</h2>
-        <span className="text-[11px] font-bold text-brown/60">
+        <h2 className="text-3xl font-serif font-black text-[#3E2723]">Filters</h2>
+        <span className="text-[11px] font-bold text-[#3E2723]/60">
           {totalResults} Results
         </span>
       </div>
 
       <div className="space-y-10">
         <div>
-          <div className="flex justify-between items-center border-b border-brown/20 pb-3 mb-6">
-            <h3 className="text-[13px] font-bold uppercase text-brown">Medium</h3>
-            <span className="text-lg font-light text-brown">−</span>
+          <div className="flex justify-between items-center border-b border-[#3E2723]/20 pb-3 mb-6">
+            <h3 className="text-[13px] font-bold uppercase text-[#3E2723]">Medium</h3>
+            <span className="text-lg font-light text-[#3E2723]">−</span>
           </div>
 
           <ul className="space-y-4">
@@ -58,8 +58,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <div
                   className={`w-4 h-4 rounded-full mr-3 flex items-center justify-center border transition-all ${
                     selectedMediums.includes(item)
-                      ? 'bg-brown border-brown'
-                      : 'bg-cream border-brown/40'
+                      ? 'bg-[#3E2723] border-[#3E2723]'
+                      : 'bg-cream border-[#3E2723]/40'
                   }`}
                 >
                   <div
@@ -74,8 +74,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <span
                   className={`text-[13px] font-medium transition-colors ${
                     selectedMediums.includes(item)
-                      ? 'text-brown'
-                      : 'text-brown/60'
+                      ? 'text-[#3E2723]'
+                      : 'text-[#3E2723]/60'
                   }`}
                 >
                   {item}
@@ -86,11 +86,11 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         <div>
-          <div className="flex justify-between items-center border-b border-brown/20 pb-3 mb-6">
-            <h3 className="text-[13px] font-bold uppercase text-brown">
+          <div className="flex justify-between items-center border-b border-[#3E2723]/20 pb-3 mb-6">
+            <h3 className="text-[13px] font-bold uppercase text-[#3E2723]">
               Availability
             </h3>
-            <span className="text-lg font-light text-brown">−</span>
+            <span className="text-lg font-light text-[#3E2723]">−</span>
           </div>
 
           <ul className="space-y-4">
@@ -103,8 +103,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <div
                   className={`w-4 h-4 rounded-full mr-3 flex items-center justify-center border transition-all ${
                     selectedStatuses.includes(item)
-                      ? 'bg-brown border-brown'
-                      : 'bg-cream border-brown/40'
+                      ? 'bg-[#3E2723] border-[#3E2723]'
+                      : 'bg-cream border-[#3E2723]/40'
                   }`}
                 >
                   <div
@@ -119,8 +119,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <span
                   className={`text-[13px] font-medium transition-colors ${
                     selectedStatuses.includes(item)
-                      ? 'text-brown'
-                      : 'text-brown/60'
+                      ? 'text-[#3E2723]'
+                      : 'text-[#3E2723]/60'
                   }`}
                 >
                   {item}
