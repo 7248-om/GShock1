@@ -7,12 +7,15 @@ import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 
 gsap.registerPlugin(ScrollTrigger);
+
+// --- THEME CONSTANTS (SYNCHRONIZED WITH HEADER.TSX) ---
+// We must use the exact same hex codes as the Header to ensure a seamless look.
 const THEME = {
-  espresso: '#2A1A14',
-  bronze: '#B6771D',
-  gold: '#FF9D00',
-  cream: '#FFF7E6',
-  latte: '#FFCF71',
+  espresso: '#3E2723',  // Dark Brown (Matches Header Background)
+  bronze: '#966328',    // Medium Brown (Accents)
+  gold: '#D99A46',      // Gold/Orange (Highlights)
+  cream: '#FFFCF2',     // Light Cream (Page Background)
+  latte: '#F5EFE6',     // Pale Beige (Sidebar/Form Background)
   white: '#FFFFFF',
 };
 
@@ -24,15 +27,8 @@ const WorkshopSubmissionForm: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    date: '',
-    startTime: '',
-    endTime: '',
-    price: '0',
-    capacity: '',
-    category: 'Breather',
-    imageUrl: '',
+    title: '', description: '', date: '', startTime: '', endTime: '',
+    price: '0', capacity: '', category: 'Breather', imageUrl: '',
   });
 
   const API_BASE_URL = import.meta.env.VITE_BACKEND_API_URL || '/api';
@@ -53,38 +49,24 @@ const WorkshopSubmissionForm: React.FC = () => {
     setSubmitMessage(null);
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/workshops`, {
+      await axios.post(`${API_BASE_URL}/workshops`, {
         ...formData,
         price: parseFloat(formData.price),
         capacity: parseInt(formData.capacity) || 0,
         image: formData.imageUrl,
-        imageUrl: formData.imageUrl,
         primaryImageUrl: formData.imageUrl,
       }, {
         headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` }
       });
 
-      setSubmitMessage({ 
-        type: 'success', 
-        text: 'Workshop submitted successfully! Admin will review and approve.' 
-      });
+      setSubmitMessage({ type: 'success', text: 'Workshop submitted successfully! Admin will review.' });
       setFormData({
-        title: '',
-        description: '',
-        date: '',
-        startTime: '',
-        endTime: '',
-        price: '0',
-        capacity: '',
-        category: 'Breather',
-        imageUrl: '',
+        title: '', description: '', date: '', startTime: '', endTime: '',
+        price: '0', capacity: '', category: 'Breather', imageUrl: '',
       });
       setTimeout(() => setIsOpen(false), 2000);
     } catch (error: any) {
-      setSubmitMessage({ 
-        type: 'error', 
-        text: error.response?.data?.message || 'Failed to submit workshop' 
-      });
+      setSubmitMessage({ type: 'error', text: error.response?.data?.message || 'Failed to submit workshop' });
     } finally {
       setIsSubmitting(false);
     }
@@ -96,67 +78,61 @@ const WorkshopSubmissionForm: React.FC = () => {
     <div className="mb-12">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-6 py-4 bg-gold text-[#3E2723] font-black uppercase tracking-widest text-sm rounded-full hover:bg-[#FFB81D] transition-colors"
+        className="w-full px-6 py-4 font-black uppercase tracking-widest text-sm rounded-full transition-all hover:scale-[1.01] shadow-lg bg-[#3E2723] text-[#FFFCF2]"
       >
-        {isOpen ? '✕ Close' : '+ Become a Tutor - Submit Workshop'}
+        {isOpen ? '✕ Close Form' : '+ Become a Tutor - Submit Workshop'}
       </button>
 
       {isOpen && (
-        <div className="mt-6 bg-cream border border-gold rounded-3xl p-8">
-          <h3 className="text-2xl font-serif font-bold text-coffee mb-6">Submit Your Workshop</h3>
+        <div className="mt-6 border rounded-3xl p-8 shadow-xl"
+             style={{ backgroundColor: THEME.white, borderColor: THEME.gold }}>
+          <h3 className="text-2xl font-serif font-bold mb-6" style={{ color: THEME.espresso }}>Submit Your Workshop</h3>
           
           {submitMessage && (
-            <div className={`mb-6 p-4 rounded-lg ${submitMessage.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+            <div className={`mb-6 p-4 rounded-lg font-bold ${submitMessage.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
               {submitMessage.text}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Title */}
             <div>
-              <label className="block text-sm font-bold text-coffee mb-2">Workshop Title *</label>
+              <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: THEME.bronze }}>Workshop Title *</label>
               <input
-                type="text"
-                name="title"
-                value={formData.title}
-                onChange={handleInputChange}
-                required
+                type="text" name="title" value={formData.title} onChange={handleInputChange} required
                 placeholder="e.g., Advanced Espresso Pulling Techniques"
-                className="w-full px-4 py-3 border border-coffee/30 rounded-lg focus:outline-none focus:border-gold"
+                className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all"
+                style={{ borderColor: `${THEME.espresso}33`, color: THEME.espresso }}
               />
             </div>
 
+            {/* Description */}
             <div>
-              <label className="block text-sm font-bold text-coffee mb-2">Description</label>
+              <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: THEME.bronze }}>Description</label>
               <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
+                name="description" value={formData.description} onChange={handleInputChange} rows={4}
                 placeholder="Tell us about your workshop..."
-                rows={4}
-                className="w-full px-4 py-3 border border-coffee/30 rounded-lg focus:outline-none focus:border-gold"
+                className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all"
+                style={{ borderColor: `${THEME.espresso}33`, color: THEME.espresso }}
               />
             </div>
 
+            {/* Grid 1: Date & Category */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-bold text-coffee mb-2">Date *</label>
+                <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: THEME.bronze }}>Date *</label>
                 <input
-                  type="date"
-                  name="date"
-                  value={formData.date}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-4 py-3 border border-coffee/30 rounded-lg focus:outline-none focus:border-gold"
+                  type="date" name="date" value={formData.date} onChange={handleInputChange} required
+                  className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2"
+                  style={{ borderColor: `${THEME.espresso}33`, color: THEME.espresso }}
                 />
               </div>
-
               <div>
-                <label className="block text-sm font-bold text-coffee mb-2">Category</label>
+                <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: THEME.bronze }}>Category</label>
                 <select
-                  name="category"
-                  value={formData.category}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-coffee/30 rounded-lg focus:outline-none focus:border-gold"
+                  name="category" value={formData.category} onChange={handleInputChange}
+                  className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2"
+                  style={{ borderColor: `${THEME.espresso}33`, color: THEME.espresso }}
                 >
                   <option>Breather</option>
                   <option>Foundations</option>
@@ -165,76 +141,65 @@ const WorkshopSubmissionForm: React.FC = () => {
               </div>
             </div>
 
+            {/* Grid 2: Times */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-bold text-coffee mb-2">Start Time</label>
+                <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: THEME.bronze }}>Start Time</label>
                 <input
-                  type="time"
-                  name="startTime"
-                  value={formData.startTime}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-coffee/30 rounded-lg focus:outline-none focus:border-gold"
+                  type="time" name="startTime" value={formData.startTime} onChange={handleInputChange}
+                  className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2"
+                  style={{ borderColor: `${THEME.espresso}33`, color: THEME.espresso }}
                 />
               </div>
-
               <div>
-                <label className="block text-sm font-bold text-coffee mb-2">End Time</label>
+                <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: THEME.bronze }}>End Time</label>
                 <input
-                  type="time"
-                  name="endTime"
-                  value={formData.endTime}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-coffee/30 rounded-lg focus:outline-none focus:border-gold"
+                  type="time" name="endTime" value={formData.endTime} onChange={handleInputChange}
+                  className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2"
+                  style={{ borderColor: `${THEME.espresso}33`, color: THEME.espresso }}
                 />
               </div>
             </div>
 
+            {/* Grid 3: Price & Capacity */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-bold text-coffee mb-2">Price (₹)</label>
+                <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: THEME.bronze }}>Price (₹)</label>
                 <input
-                  type="number"
-                  name="price"
-                  value={formData.price}
-                  onChange={handleInputChange}
-                  min="0"
-                  placeholder="0 for free"
-                  className="w-full px-4 py-3 border border-coffee/30 rounded-lg focus:outline-none focus:border-gold"
+                  type="number" name="price" value={formData.price} onChange={handleInputChange} min="0"
+                  className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2"
+                  style={{ borderColor: `${THEME.espresso}33`, color: THEME.espresso }}
                 />
               </div>
-
               <div>
-                <label className="block text-sm font-bold text-coffee mb-2">Capacity</label>
+                <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: THEME.bronze }}>Capacity</label>
                 <input
-                  type="number"
-                  name="capacity"
-                  value={formData.capacity}
-                  onChange={handleInputChange}
-                  min="1"
-                  placeholder="Max participants"
-                  className="w-full px-4 py-3 border border-coffee/30 rounded-lg focus:outline-none focus:border-gold"
+                  type="number" name="capacity" value={formData.capacity} onChange={handleInputChange} min="1"
+                  className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2"
+                  style={{ borderColor: `${THEME.espresso}33`, color: THEME.espresso }}
                 />
               </div>
             </div>
 
+            {/* Image URL */}
             <div>
-              <label className="block text-sm font-bold text-coffee mb-2">Image URL</label>
+              <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: THEME.bronze }}>Image URL</label>
               <input
-                type="url"
-                name="imageUrl"
-                value={formData.imageUrl}
-                onChange={handleInputChange}
+                type="url" name="imageUrl" value={formData.imageUrl} onChange={handleInputChange}
                 placeholder="https://example.com/image.jpg"
-                className="w-full px-4 py-3 border border-coffee/30 rounded-lg focus:outline-none focus:border-gold"
+                className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2"
+                style={{ borderColor: `${THEME.espresso}33`, color: THEME.espresso }}
               />
             </div>
 
+            {/* Submit Button - REPLACED hardcoded tailwind colors with THEME */}
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full px-6 py-3 bg-amber-900 text-amber-50 font-black uppercase tracking-widest rounded-lg hover:bg-amber-800 disabled:opacity-50 transition-colors"
+              className="w-full px-6 py-4 font-black uppercase tracking-widest rounded-lg transition-all hover:opacity-90 disabled:opacity-50"
+              style={{ backgroundColor: THEME.espresso, color: THEME.cream }}
             >
-              {isSubmitting ? 'Submitting...' : 'Submit Workshop'}
+              {isSubmitting ? 'Brewing Submission...' : 'Submit Workshop'}
             </button>
           </form>
         </div>
@@ -257,15 +222,13 @@ const WorkshopCard: React.FC<{ workshop: WorkshopType }> = ({ workshop }) => {
     <div className="workshop-card group relative w-full h-[28rem] bg-white border border-opacity-20 rounded-t-[4rem] overflow-hidden opacity-0 translate-y-12 shadow-sm hover:shadow-xl transition-shadow duration-500"
          style={{ borderColor: THEME.bronze }}>
       
-      {/* ---------- PART 1 : IMAGE ---------- */}
+      {/* Image Section */}
       <div className="relative h-full overflow-hidden transition-all duration-500 group-hover:h-1/2">
         <img
           src={workshop.image}
           alt={workshop.title}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 grayscale-[10%] group-hover:grayscale-0"
         />
-        
-        {/* Title Overlay (Visible initially) */}
         <div className="absolute inset-0 flex items-center justify-center transition-opacity duration-300 group-hover:opacity-0">
           <span className="bg-white/90 backdrop-blur-md text-black text-[24px] text-center font-bold uppercase tracking-widest px-6 py-3 shadow-lg border border-black/5">
             {workshop.title}
@@ -273,7 +236,7 @@ const WorkshopCard: React.FC<{ workshop: WorkshopType }> = ({ workshop }) => {
         </div>
       </div>
 
-      {/* ---------- PART 2 : CONTENT (SLIDE UP) ---------- */}
+      {/* Content Slide-Up */}
       <div className="absolute inset-x-0 bottom-0 top-auto h-1/2 py-6 px-6 flex flex-col bg-white border-t transition-all duration-500 translate-y-full group-hover:translate-y-0"
            style={{ backgroundColor: THEME.cream, borderColor: THEME.bronze }}>
         
@@ -285,7 +248,7 @@ const WorkshopCard: React.FC<{ workshop: WorkshopType }> = ({ workshop }) => {
              <div className="text-[14px] font-bold uppercase tracking-widest" style={{ color: THEME.bronze }}>
               {new Date(workshop.date).toLocaleDateString('en-US', { month: 'short', day: '2-digit' })}
             </div>
-             <div className="text-[11px] font-medium uppercase text-black/40">
+             <div className="text-[11px] font-medium uppercase" style={{ color: `${THEME.espresso}66` }}>
                {new Date(workshop.startTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
              </div>
           </div>
@@ -305,9 +268,9 @@ const WorkshopCard: React.FC<{ workshop: WorkshopType }> = ({ workshop }) => {
             disabled={booked}
             style={{ 
               backgroundColor: booked ? THEME.bronze : THEME.espresso,
-              color: THEME.white
+              color: THEME.cream
             }}
-            className="flex-1 text-[10px] font-black uppercase tracking-[0.2em] py-3 transition-all duration-300 hover:opacity-90 active:scale-95"
+            className="flex-1 text-[10px] font-black uppercase tracking-[0.2em] py-3 transition-all duration-300 hover:opacity-90 active:scale-95 rounded-lg"
           >
             {booked ? 'Reserved' : 'Book Seat'}
           </button>
@@ -360,30 +323,26 @@ const FaqItem: React.FC<{ faq: { question: string; answer: string } }> = ({ faq 
 
 const Workshop: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
-
-  // State
   const [workshops, setWorkshops] = useState<WorkshopType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [priceFilters, setPriceFilters] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<string>('date-asc');
 
-  // Fetch Logic (Kept same as before)
   useEffect(() => {
     const fetchWorkshops = async () => {
       try {
         setLoading(true);
-        // Mock data for display if API fails or for demo
+        // Mock data
         const mockData = [
             { id: 1, title: 'Latte Art Basics', date: '2025-01-20', startTime: '2025-01-20T10:00:00', endTime: '2025-01-20T12:00:00', description: 'Learn the fundamentals of milk frothing and pouring.', price: 2500, image: 'https://images.unsplash.com/photo-1551816557-4b77f804523d?q=80&w=2000&auto=format&fit=crop' },
             { id: 2, title: 'Espresso Calibration', date: '2025-01-22', startTime: '2025-01-22T14:00:00', endTime: '2025-01-22T16:00:00', description: 'Dial in your grinder and machine for the perfect shot.', price: 3000, image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=1887&auto=format&fit=crop' },
             { id: 3, title: 'Cupping & Sensory', date: '2025-01-25', startTime: '2025-01-25T11:00:00', endTime: '2025-01-25T13:00:00', description: 'Expand your palate with our head roaster.', price: 0, image: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?q=80&w=1887&auto=format&fit=crop' },
         ];
         
-        // Uncomment below for real API
-        // const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/api/workshops`);
-        // if (!response.ok) throw new Error('Failed');
-        // const data = await response.json();
+        // Uncomment for real API
+        // const response = await axios.get(`${import.meta.env.VITE_BACKEND_API_URL || '/api'}/workshops`);
+        // setWorkshops(response.data);
         
         setWorkshops(mockData); 
         setError(null);
@@ -397,7 +356,6 @@ const Workshop: React.FC = () => {
     fetchWorkshops();
   }, []);
 
-  // Filtering Logic (Kept same)
   const filteredAndSortedWorkshops = useMemo(() => {
     let result = [...workshops];
     if (priceFilters.length > 0) {
@@ -437,22 +395,11 @@ const Workshop: React.FC = () => {
     <div ref={containerRef} className="min-h-screen font-sans selection:text-white"
          style={{ backgroundColor: THEME.cream, '--tw-selection-bg': THEME.bronze } as React.CSSProperties}>
       
-      {/* ---------------- NAVIGATION PLACEHOLDER ---------------- */}
-      <nav className="absolute top-0 w-full p-6 flex justify-between items-center z-50">
-          <div className="font-bold tracking-widest text-lg" style={{ color: THEME.white }}>RABUSTE</div>
-          <div className="flex gap-6 text-xs font-bold uppercase tracking-widest" style={{ color: THEME.white }}>
-             {/* Forced white color to prevent blue links */}
-             <a href="#" className="hover:opacity-70 transition-opacity">Visit Café</a>
-             <a href="#" className="hover:opacity-70 transition-opacity">Login</a>
-             <a href="#" className="hover:opacity-70 transition-opacity">Cart (0)</a>
-          </div>
-      </nav>
-
-      {/* ---------------- HERO SECTION (Fixed: Deep Espresso Background) ---------------- */}
+      {/* ---------------- HERO SECTION ---------------- */}
       <section className="relative h-[65vh] flex items-center justify-center overflow-hidden"
                style={{ backgroundColor: THEME.espresso }}>
         
-        {/* Subtle decorative circle */}
+        {/* Decorative Orbs */}
         <div className="absolute top-[-20%] right-[-10%] w-[50vh] h-[50vh] rounded-full blur-[100px] opacity-20"
              style={{ backgroundColor: THEME.gold }}></div>
         <div className="absolute bottom-[-10%] left-[-10%] w-[40vh] h-[40vh] rounded-full blur-[80px] opacity-10"
@@ -472,8 +419,7 @@ const Workshop: React.FC = () => {
           </h1>
 
           <p className="text-lg font-light max-w-lg mx-auto leading-relaxed opacity-80" style={{ color: THEME.white }}>
-            Join our sensory scientists and master baristas in exploring the technical
-            limits of coffee extraction and flavor profiling.
+            Join our sensory scientists and master baristas in exploring the technical limits of coffee extraction.
           </p>
         </div>
       </section>
@@ -487,13 +433,15 @@ const Workshop: React.FC = () => {
         </h2>
       </div>
 
+      
+
       {/* ---------------- MAIN CONTENT ---------------- */}
       <section className="py-20 px-6 max-w-[1600px] mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-16">
           
-          {/* SIDEBAR (Fixed: Lighter, cleaner background) */}
-          <aside className="sticky top-12 h-fit rounded-[2rem] p-8"
-                 style={{ backgroundColor: THEME.latte }}> {/* Changed from muddy brown to Latte */}
+          {/* SIDEBAR */}
+          <aside className="sticky top-24 h-fit rounded-[2rem] p-8 border border-opacity-20 shadow-sm"
+                 style={{ backgroundColor: THEME.latte, borderColor: THEME.espresso }}>
             
             <div className="flex items-center justify-between mb-8">
                <h3 className="text-xs font-black uppercase tracking-[0.2em]" style={{ color: THEME.espresso }}>
@@ -568,7 +516,7 @@ const Workshop: React.FC = () => {
              </div>
           </aside>
 
-          {/* GRID */}
+          {/* GRID & FORM */}
           <div className="flex-1">
             <WorkshopSubmissionForm />
             
@@ -585,9 +533,9 @@ const Workshop: React.FC = () => {
         </div>
       </section>
 
-      {/* ---------------- FAQ SECTION (Fixed: Pale Background) ---------------- */}
-      <section className="py-32 px-6" 
-               style={{ backgroundColor: THEME.latte }}> {/* Fixed: Changed from Orange/Mustard to Pale Latte */}
+      {/* ---------------- FAQ SECTION ---------------- */}
+      {/* Background set to Latte for softer transition */}
+      <section className="py-32 px-6" style={{ backgroundColor: THEME.latte }}>
         <div className="max-w-3xl mx-auto">
           <div className="mb-12 text-center">
              <span className="text-[10px] font-bold uppercase tracking-[0.3em] opacity-60" style={{ color: THEME.espresso }}>Need Help?</span>
