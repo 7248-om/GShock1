@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Play } from 'lucide-react';
 
 interface Reel {
   _id: string;
@@ -12,13 +11,11 @@ interface Reel {
 const Highlights: React.FC = () => {
   const [reels, setReels] = useState<Reel[]>([]);
   const [loading, setLoading] = useState(true);
-  const [playingIndex, setPlayingIndex] = useState<number | null>(null);
   const API_BASE_URL = import.meta.env.VITE_BACKEND_API_URL || '/api';
 
+  // Keeping theme constants for consistency with your codebase
   const THEME = {
     espresso: '#3E2723',
-    bronze: '#966328',
-    gold: '#D99A46',
     cream: '#FFFCF2',
   };
 
@@ -30,7 +27,9 @@ const Highlights: React.FC = () => {
     try {
       setLoading(true);
       const response = await axios.get(`${API_BASE_URL}/reels/active`);
-      setReels(response.data || []);
+      // We only take the first 3 to match the layout perfectly, 
+      // though flex-wrap would handle more.
+      setReels(response.data?.slice(0, 3) || []);
     } catch (error) {
       console.error('Failed to fetch reels:', error);
     } finally {
@@ -40,10 +39,8 @@ const Highlights: React.FC = () => {
 
   if (loading) {
     return (
-      <section className="py-20 px-6" style={{ backgroundColor: THEME.cream }}>
-        <div className="container mx-auto text-center">
-          <p style={{ color: THEME.espresso }}>Loading highlights...</p>
-        </div>
+      <section className="py-24 px-6 text-center" style={{ backgroundColor: THEME.cream, color: THEME.espresso }}>
+        <p>Loading highlights...</p>
       </section>
     );
   }
@@ -53,58 +50,42 @@ const Highlights: React.FC = () => {
   }
 
   return (
-    <section className="py-20 px-6" style={{ backgroundColor: THEME.cream }}>
-      <div className="container mx-auto max-w-7xl">
-        {/* HEADER */}
-        <div className="text-center mb-16">
-          <h2 className="text-5xl md:text-6xl font-oswald font-bold mb-4 uppercase tracking-tight" style={{ color: THEME.espresso }}>
-            Highlights
-          </h2>
-          <p className="text-lg" style={{ color: THEME.bronze }}>
-            Featuring the best moments from Rabuste
-          </p>
-        </div>
+    <section className="py-24" style={{ backgroundColor: THEME.cream, color: THEME.espresso }}>
+      {/* HEADER */}
+      <div className="container mx-auto px-4 text-center mb-16">
+        <h2 className="text-4xl md:text-6xl font-oswald font-bold uppercase mb-6">
+          Highlights
+        </h2>
+        <p className="max-w-xl mx-auto opacity-80">
+          Featuring the best moments from Rabuste
+        </p>
+      </div>
 
-        {/* VIDEO GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {reels.map((reel, index) => (
-            <div
-              key={reel._id}
-              className="group relative overflow-hidden rounded-lg aspect-square cursor-pointer"
-              onMouseEnter={() => setPlayingIndex(index)}
-              onMouseLeave={() => setPlayingIndex(null)}
-            >
-              {/* VIDEO */}
-              <video
-                src={reel.videoUrl}
-                controls={playingIndex === index}
-                muted={playingIndex !== index}
-                loop
-                className="w-full h-full object-cover"
-                onMouseEnter={() => playingIndex === index && (document.querySelector(`video[src="${reel.videoUrl}"]`) as HTMLVideoElement)?.play()}
-              />
+      {/* ARCHES LAYOUT */}
+      <div className="flex flex-col md:flex-row justify-center items-stretch gap-8 px-4 max-w-7xl mx-auto">
+        {reels.map((reel) => (
+          <div
+            key={reel._id}
+            className="group relative w-full md:w-1/3 aspect-[3/4] overflow-hidden rounded-t-[10rem] bg-black/5"
+          >
+            {/* VIDEO */}
+            <video
+              src={reel.videoUrl}
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            />
 
-              {/* OVERLAY */}
-              {playingIndex !== index && (
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center group-hover:bg-black/40 transition-colors">
-                  <Play
-                    size={48}
-                    className="text-white group-hover:scale-110 transition-transform"
-                    fill="currentColor"
-                  />
-                </div>
-              )}
-
-              {/* INFO */}
-              {playingIndex !== index && (
-                <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black to-transparent text-white">
-                  <h3 className="font-bold text-lg mb-1">{reel.title}</h3>
-                  <p className="text-sm text-gray-200 line-clamp-2">{reel.description}</p>
-                </div>
-              )}
+            {/* OVERLAY */}
+            <div className="absolute inset-0 bg-black/15 group-hover:bg-black/30 transition-colors flex flex-col justify-end p-8 text-center">
+              <h3 className="text-sm font-oswald uppercase tracking-wide text-[#FFFCF2]">
+                {reel.description || reel.title}
+              </h3>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
     </section>
   );

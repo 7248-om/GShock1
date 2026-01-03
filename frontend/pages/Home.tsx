@@ -4,7 +4,7 @@ import Hero from '../components/Hero';
 import EmailPopup from '../components/EmailPopup';
 import SplitSection from '../components/SplitSection';
 import DoubleSplit from '../components/DoubleSplit';
-import Arches from '../components/Arches';
+// import Arches from '../components/Arches';
 import GridMenu from '../components/GridMenu';
 import SplitSection2 from '@/components/SplitSection2';
 import Highlights from '@/components/Highlights';
@@ -155,7 +155,7 @@ const Home: React.FC = () => {
       />
       <Highlights />
       <SuggestionSection />
-      <Arches />
+      {/* <Arches /> */}
       {/* <SplitSection
         alignment="left"
         mediaUrl="https://images.unsplash.com/photo-1509042239860-f550ce710b93"
