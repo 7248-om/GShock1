@@ -19,6 +19,15 @@ const artistRoutes = require('./artist.routes');
 
 const router = express.Router();
 
+// Root API endpoint
+router.get('/', (req, res) => {
+  res.json({ 
+    message: 'GShock API Server', 
+    status: 'running',
+    timestamp: new Date().toISOString()
+  });
+});
+
 router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
 router.use('/products', productRoutes);
