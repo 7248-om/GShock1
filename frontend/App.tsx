@@ -1,6 +1,9 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import Chatbot from './components/Chatbot'; // <--- Import here
+
+// ... imports for pages ...
 import Workshop from './pages/Workshop';
 import Home from './pages/Home';
 import Menu from './pages/Menu';
@@ -19,17 +22,15 @@ import WhyRobusta from './pages/WhyRobusta';
 import Profile from './pages/Profile';
 import Artist from './pages/Artist';
 import OurStory from './pages/OurStory';
+
 const App = () => {
   const location = useLocation();
   const isAuthPage = location.pathname.startsWith('/login') || location.pathname.startsWith('/admin');
 
   return (
-    // 3. Removed <Router> from here because it's now in main.tsx
     <div className="min-h-screen flex flex-col font-sans bg-cream text-[#3E2723] selection:bg-gold selection:text-white">
       
-      {/* 4. Conditionally hide Header */}
       {!isAuthPage && <Header />}
-
 
         <main className="flex-grow ">
           <Routes>
@@ -54,9 +55,13 @@ const App = () => {
           </Routes>
         </main>
 
-
-      {/* 5. Conditionally hide Footer */}
-      {!isAuthPage && <Footer />}
+      {/* Conditionally hide Footer & Chatbot */}
+      {!isAuthPage && (
+        <>
+          <Chatbot /> {/* <--- Add Component here */}
+          <Footer />
+        </>
+      )}
     </div>
   );
 };
