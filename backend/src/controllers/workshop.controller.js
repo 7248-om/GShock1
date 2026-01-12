@@ -211,7 +211,6 @@ async function updateWorkshopStatus(req, res) {
         res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 }
-
 // Admin: Get pending workshops for approval
 async function getPendingWorkshops(req, res) {
     try {

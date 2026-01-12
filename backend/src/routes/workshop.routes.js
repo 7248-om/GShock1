@@ -22,8 +22,10 @@ router.get('/admin/all', authMiddleware, adminMiddleware, workshopController.get
 // Admin: Get pending workshops for approval
 router.get('/admin/pending', authMiddleware, adminMiddleware, workshopController.getPendingWorkshops);
 
+// ✅ ADDED THIS LINE - Fixes the 404
 // Admin: Approve or reject workshop
-router.put('/:id/status', authMiddleware, adminMiddleware, workshopController.updateWorkshopStatus);
+router.patch('/:id/status', authMiddleware, adminMiddleware, workshopController.updateWorkshopStatus); 
+// (Note: Using PATCH is semantically better for partial updates, but PUT works if your frontend matches)
 
 // Admin: Update workshop (if needed)
 router.put('/:id', authMiddleware, adminMiddleware, upload.single('image'), workshopController.updateWorkshopWithImage);

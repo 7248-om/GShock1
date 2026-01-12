@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { 
   TrendingUp, 
   Coffee, 
-  Palette, 
   Users, 
   ArrowRight, 
   MapPin, 
@@ -41,7 +40,7 @@ const FranchiseLanding: React.FC = () => {
               Join the movement redefining Indian coffee culture. Premium Robusta. Immersive Art. Unapologetic Strength.
             </p>
             <button 
-              onClick={() => navigate('/franchises')} // Links to your existing Form page
+              onClick={() => navigate('/franchise')} // ✅ FIXED: Points to Franchise.tsx
               className="group flex items-center gap-4 bg-[#D99A46] text-[#3E2723] px-8 py-4 text-xs font-black uppercase tracking-[0.2em] hover:bg-white transition-all"
             >
               <span>Apply for Ownership</span>
@@ -206,7 +205,7 @@ const FranchiseLanding: React.FC = () => {
             </p>
             <div className="pt-8">
                <button 
-                  onClick={() => navigate('/franchise')}
+                  onClick={() => navigate('/franchise')} // ✅ FIXED
                   className="px-10 py-5 bg-[#FFFCF2] text-[#3E2723] uppercase tracking-[0.25em] text-xs font-black hover:bg-[#D99A46] hover:text-[#FFFCF2] transition-all duration-300 shadow-[0_0_40px_rgba(217,154,70,0.3)]"
                >
                   Start Application
