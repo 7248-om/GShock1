@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+
+// --- COMPONENTS ---
 import Layout from './admin/Layout';
+import Header from '@/components/Header'; // Ensure this path matches your project
 import Dashboard from './admin/Dashboard';
 import MenuManagement from './admin/MenuManagement';
 import OrderManagement from './admin/OrderManagement';
@@ -13,11 +16,10 @@ import MarketingCMS from './admin/MarketingCMS';
 import UserManagement from './admin/UserManagement';
 import ReelManagement from './admin/ReelManagement';
 import SuggestionManagement from './admin/SuggestionManagement';
-// 1. IMPORT THE ARTIST COMPONENT 👇
-import ArtistManagement from './admin/ArtistManagement';
+import ArtistManagement from './admin/ArtistManagement'; // ✅ Added
 
-import Header from '@/components/Header';
-
+// --- CONTEXT & TYPES ---
+import { useAuth } from '../context/AuthContext';
 import { 
   MenuItem, 
   Order, 
@@ -29,7 +31,7 @@ import {
   FAQ, 
   User 
 } from './types';
-import { useAuth } from '../context/AuthContext';
+import { div } from 'three/tsl';
 
 const API_BASE_URL = import.meta.env.VITE_BACKEND_API_URL || '/api';
 
@@ -37,6 +39,7 @@ const Admin: React.FC = () => {
   const navigate = useNavigate();
   const { user, loading, token } = useAuth();
 
+  // --- STATE ---
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [artworks, setArtworks] = useState<Artwork[]>([]);
@@ -55,37 +58,29 @@ const Admin: React.FC = () => {
     isStoreOpen: true
   });
 
+  // Axios instance with Token
   const axiosInstance = useMemo(() => axios.create({
     baseURL: API_BASE_URL,
-    headers: {
-      Authorization: token ? `Bearer ${token}` : '',
-    },
+    headers: { Authorization: token ? `Bearer ${token}` : '' },
   }), [token]);
 
+  // --- AUTH CHECK ---
   useEffect(() => {
     if (loading) return;
-
-    if (!user) {
-      navigate('/login', { replace: true });
-    } else if (user.role !== 'admin') {
+    if (!user || user.role !== 'admin') {
       navigate('/', { replace: true });
     }
   }, [user, loading, navigate]);
 
+  // --- FETCH DATA ---
   useEffect(() => {
     if (!token || loading) return;
 
     const fetchAllData = async () => {
       try {
         setIsLoading(true);
-        const [
-          productsRes,
-          ordersRes,
-          artworksRes,
-          workshopsRes,
-          usersRes,
-          franchisesRes,
-        ] = await Promise.all([
+        // Using Promise.allSettled is safer than Promise.all if one endpoint fails
+        const results = await Promise.allSettled([
           axiosInstance.get('/products'),
           axiosInstance.get('/orders'),
           axiosInstance.get('/artworks'),
@@ -94,27 +89,35 @@ const Admin: React.FC = () => {
           axiosInstance.get('/franchises'),
         ]);
 
-        setMenuItems(productsRes.data || []);
-        setOrders(ordersRes.data || []);
-        setArtworks(artworksRes.data || []);
-        setWorkshops(workshopsRes.data || []);
-        setUsers(usersRes.data || []);
-        setLeads(franchisesRes.data || []);
+        // Helper to extract data safely
+        const getData = (result: PromiseSettledResult<any>) => 
+          result.status === 'fulfilled' ? result.value.data : [];
 
-        const totalRevenue = ordersRes.data?.reduce((sum: number, order: Order) => {
-          const orderTotal = order.items?.reduce((itemSum: number, item: any) => itemSum + (item.price * item.quantity), 0) || 0;
-          return sum + orderTotal;
-        }, 0) || 0;
+        setMenuItems(getData(results[0]));
+        setOrders(getData(results[1]));
+        
+        // Ensure Artworks have 'id' property
+        const rawArt = getData(results[2]);
+        setArtworks(Array.isArray(rawArt) ? rawArt.map((a: any) => ({...a, id: a._id || a.id})) : []);
+        
+        setWorkshops(getData(results[3]));
+        setUsers(getData(results[4]));
+        setLeads(getData(results[5]));
 
+        // Calculate Stats
+        const validOrders = getData(results[1]);
+        const totalRevenue = Array.isArray(validOrders) ? validOrders.reduce((sum: number, order: Order) => sum + (order.totalAmount || 0), 0) : 0;
+        
         setStats({
           totalRevenue,
-          totalOrdersToday: ordersRes.data?.length || 0,
-          activeBookings: workshopsRes.data?.length || 0,
-          artInquiries: artworksRes.data?.length || 0,
+          totalOrdersToday: Array.isArray(validOrders) ? validOrders.length : 0,
+          activeBookings: Array.isArray(getData(results[3])) ? getData(results[3]).length : 0,
+          artInquiries: Array.isArray(getData(results[5])) ? getData(results[5]).length : 0,
           isStoreOpen: true
         });
+
       } catch (error) {
-        console.error('Failed to fetch data:', error);
+        console.error('Failed to fetch admin data:', error);
       } finally {
         setIsLoading(false);
       }
@@ -123,62 +126,25 @@ const Admin: React.FC = () => {
     fetchAllData();
   }, [token, loading]);
 
-  const handleToggleStore = () => {
-    setIsStoreOpen(!isStoreOpen);
-    setStats(prev => ({ ...prev, isStoreOpen: !isStoreOpen }));
-  };
-
-  const handleAddMenuItem = async (item: MenuItem) => {
-    try {
-      const response = await axiosInstance.post('/products', item);
-      setMenuItems([response.data, ...menuItems]);
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || error.message || 'Failed to add menu item');
-    }
-  };
-
-  const handleUpdateMenuItem = async (item: MenuItem) => {
-    try {
-      const response = await axiosInstance.put(`/products/${item._id || item.id}`, item);
-      setMenuItems(menuItems.map(i => (i._id || i.id) === (item._id || item.id) ? response.data : i));
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || error.message || 'Failed to update menu item');
-    }
-  };
-
-  const handleDeleteMenuItem = async (id: string) => {
-    try {
-      await axiosInstance.delete(`/products/${id}`);
-      setMenuItems(menuItems.filter(i => (i._id || i.id) !== id));
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || error.message || 'Failed to delete menu item');
-    }
-  };
-
-  const handleUpdateOrderStatus = async (id: string, status: OrderStatus) => {
-    try {
-      const response = await axiosInstance.put(`/orders/${id}`, { status });
-      setOrders(orders.map(o => o._id === id ? response.data : o));
-    } catch (error) {
-      console.error('Failed to update order status:', error);
-    }
-  };
-
+  // --- HANDLERS: ARTWORK (CRUD) ---
   const handleAddArtwork = async (artwork: Artwork) => {
     try {
       const response = await axiosInstance.post('/artworks', artwork);
-      setArtworks([response.data, ...artworks]);
+      const newArt = { ...response.data, id: response.data._id };
+      setArtworks([newArt, ...artworks]);
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || error.message || 'Failed to add artwork');
+      alert(error.response?.data?.message || 'Failed to add artwork');
     }
   };
 
   const handleUpdateArtwork = async (artwork: Artwork) => {
     try {
-      const response = await axiosInstance.put(`/artworks/${artwork._id || artwork.id}`, artwork);
-      setArtworks(artworks.map(a => (a._id || a.id) === (artwork._id || artwork.id) ? response.data : a));
+      const id = artwork._id || artwork.id;
+      const response = await axiosInstance.put(`/artworks/${id}`, artwork);
+      const updatedArt = { ...response.data, id: response.data._id };
+      setArtworks(artworks.map(a => (a._id || a.id) === id ? updatedArt : a));
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || error.message || 'Failed to update artwork');
+      alert(error.response?.data?.message || 'Failed to update artwork');
     }
   };
 
@@ -187,99 +153,72 @@ const Admin: React.FC = () => {
       await axiosInstance.delete(`/artworks/${id}`);
       setArtworks(artworks.filter(a => (a._id || a.id) !== id));
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || error.message || 'Failed to delete artwork');
+      alert(error.response?.data?.message || 'Failed to delete artwork');
     }
   };
 
-  const handleAddWorkshop = async (workshop: Workshop) => {
+  // --- HANDLERS: MENU ---
+  const handleAddMenuItem = async (item: MenuItem) => {
     try {
-      const response = await axiosInstance.post('/workshops', workshop);
-      setWorkshops([response.data, ...workshops]);
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || error.message || 'Failed to add workshop');
-    }
+      const res = await axiosInstance.post('/products', item);
+      setMenuItems([res.data, ...menuItems]);
+    } catch (err) { console.error(err); }
+  };
+  const handleUpdateMenuItem = async (item: MenuItem) => {
+    try {
+      const res = await axiosInstance.put(`/products/${item._id}`, item);
+      setMenuItems(menuItems.map(i => i._id === item._id ? res.data : i));
+    } catch (err) { console.error(err); }
+  };
+  const handleDeleteMenuItem = async (id: string) => {
+    try {
+      await axiosInstance.delete(`/products/${id}`);
+      setMenuItems(menuItems.filter(i => i._id !== id));
+    } catch (err) { console.error(err); }
   };
 
-  const handleUpdateWorkshop = async (workshop: Workshop) => {
+  // --- HANDLERS: OTHERS ---
+  const handleUpdateOrderStatus = async (id: string, status: OrderStatus) => {
     try {
-      const response = await axiosInstance.put(`/workshops/${workshop._id || workshop.id}`, workshop);
-      setWorkshops(workshops.map(w => (w._id || w.id) === (workshop._id || workshop.id) ? response.data : w));
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || error.message || 'Failed to update workshop');
-    }
-  };
-
-  const handleDeleteWorkshop = async (id: string) => {
-    try {
-      await axiosInstance.delete(`/workshops/${id}`);
-      setWorkshops(workshops.filter(w => (w._id || w.id) !== id));
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || error.message || 'Failed to delete workshop');
-    }
+      const res = await axiosInstance.put(`/orders/${id}/status`, { orderStatus: status }); // Ensure backend expects 'orderStatus'
+      setOrders(orders.map(o => o._id === id ? res.data : o));
+    } catch (err) { console.error(err); }
   };
 
   const handleUpdateWorkshopStatus = async (id: string, status: string) => {
     try {
-      const response = await axiosInstance.put(`/workshops/${id}/status`, { status });
-      setWorkshops(workshops.map(w => (w._id || w.id) === id ? response.data.workshop : w));
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || error.message || 'Failed to update workshop status');
-    }
+      const res = await axiosInstance.patch(`/workshops/${id}/status`, { status });
+      setWorkshops(workshops.map(w => w._id === id ? res.data : w));
+    } catch (err) { console.error(err); }
+  };
+  
+  const handleDeleteWorkshop = async (id: string) => {
+      try {
+        await axiosInstance.delete(`/workshops/${id}`);
+        setWorkshops(workshops.filter(w => w._id !== id));
+      } catch (err) { console.error(err); }
   };
 
   const handleUpdateFranchiseStatus = async (id: string, status: string) => {
     try {
-      const response = await axiosInstance.put(`/franchises/${id}/status`, { status });
-      setLeads(leads.map(l => (l._id || l.id) === id ? response.data.lead : l));
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || error.message || 'Failed to update franchise status');
-    }
+      await axiosInstance.patch(`/franchises/${id}/status`, { status });
+      // Optimistic update or refetch
+      const updatedLeads = leads.map(l => l._id === id ? { ...l, status } : l);
+      setLeads(updatedLeads as any);
+    } catch (err) { console.error(err); }
   };
 
-  if (loading || !user || user.role !== 'admin') {
-    return null; 
-  }
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-coffee-950">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-coffee-400 mx-auto mb-4"></div>
-          <p className="text-coffee-500">Loading admin dashboard...</p>
-        </div>
-      </div>
-    );
-  }
+  if (isLoading) return <div className="min-h-screen flex items-center justify-center bg-coffee-950 text-coffee-100">Loading Admin Dashboard...</div>;
 
   return (
-    <Layout isStoreOpen={isStoreOpen} onToggleStore={handleToggleStore}>
+    <div className="pt-10">
+    <Layout isStoreOpen={isStoreOpen} onToggleStore={() => setIsStoreOpen(!isStoreOpen)}>
       <Header />
       <Routes>
         <Route path="/" element={<Dashboard stats={stats} />} />
-        <Route 
-          path="/menu" 
-          element={
-            <MenuManagement 
-              items={menuItems} 
-              onAddItem={handleAddMenuItem} 
-              onUpdateItem={handleUpdateMenuItem}
-              onDeleteItem={handleDeleteMenuItem}
-            />
-          } 
-        />
-        <Route 
-          path="/orders" 
-          element={
-            <OrderManagement 
-              orders={orders} 
-              onUpdateStatus={handleUpdateOrderStatus} 
-            />
-          } 
-        />
-        <Route 
-          path="/payment-orders" 
-          element={<AdminOrders />} 
-        />
+        
+        {/* Gallery Management (Connected) */}
         <Route 
           path="/gallery" 
           element={
@@ -291,53 +230,21 @@ const Admin: React.FC = () => {
             />
           } 
         />
-        {/* 2. ADD THE ARTIST ROUTE 👇 */}
-        <Route 
-          path="/artists" 
-          element={<ArtistManagement />} 
-        />
-        <Route 
-          path="/workshops" 
-          element={
-            <WorkshopManagement 
-              workshops={workshops} 
-              onUpdateStatus={handleUpdateWorkshopStatus}
-              onDelete={handleDeleteWorkshop}
-            />
-          } 
-        />
-        <Route 
-          path="/franchise" 
-          element={
-            <FranchiseManagement 
-              leads={leads} 
-              onUpdateStatus={handleUpdateFranchiseStatus}
-            />
-          } 
-        />
-        <Route 
-          path="/marketing" 
-          element={
-            <MarketingCMS 
-              faqs={faqs} 
-              onUpdateFaqs={setFaqs} 
-            />
-          } 
-        />
-        <Route 
-          path="/users" 
-          element={<UserManagement users={users} />} 
-        />
-        <Route 
-          path="/reels" 
-          element={<ReelManagement />} 
-        />
-        <Route 
-          path="/suggestions" 
-          element={<SuggestionManagement />} 
-        />
+
+        {/* Artist Management (Self-contained) */}
+        <Route path="/artists" element={<ArtistManagement />} />
+
+        <Route path="/menu" element={<MenuManagement items={menuItems} onAddItem={handleAddMenuItem} onUpdateItem={handleUpdateMenuItem} onDeleteItem={handleDeleteMenuItem}/>} />
+        <Route path="/orders" element={<OrderManagement orders={orders} onUpdateStatus={handleUpdateOrderStatus} />} />
+        <Route path="/payment-orders" element={<AdminOrders />} />
+        <Route path="/workshops" element={<WorkshopManagement workshops={workshops} onUpdateStatus={handleUpdateWorkshopStatus} onDelete={handleDeleteWorkshop} />} />
+        <Route path="/franchise" element={<FranchiseManagement leads={leads} onUpdateStatus={handleUpdateFranchiseStatus} />} />
+        <Route path="/marketing" element={<MarketingCMS faqs={faqs} onUpdateFaqs={setFaqs} />} />
+        <Route path="/users" element={<UserManagement users={users} />} />
+        <Route path="/reels" element={<ReelManagement />} />
+        <Route path="/suggestions" element={<SuggestionManagement />} />
       </Routes>
-    </Layout>
+    </Layout></div>
   );
 };
 
