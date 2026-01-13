@@ -4,23 +4,36 @@ const User = require('../models/user.model');
 
 // Initialize Firebase Admin SDK if not already initialized
 if (!admin.apps.length) {
-  let serviceAccountConfig = {};
+  let serviceAccountConfig = null; // Start as null
 
+  // 1. Try to load from Environment Variable (Render/Production)
   if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
-    // Prefer env var if provided (e.g. in production)
-    serviceAccountConfig = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
-  }
-   else {
-    // Fallback to local config file for development
-    // NOTE: make sure this file is NOT committed with real credentials in a public repo
-    // and is added to .gitignore if it contains secrets.
-    // eslint-disable-next-line global-require, import/no-dynamic-require
-    serviceAccountConfig = require('../config/firebaseAdminKey.json');
+    try {
+      serviceAccountConfig = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+      console.log("✅ Loaded Firebase config from Environment Variable");
+    } catch (err) {
+      console.error("❌ Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY:", err.message);
+    }
+  } 
+  // 2. If no Env Var, try to load local file (Development)
+  else {
+    try {
+      // Use a try-catch so requiring a missing file doesn't crash the server
+      serviceAccountConfig = require('../config/firebaseAdminKey.json');
+      console.log("✅ Loaded Firebase config from local file");
+    } catch (err) {
+      console.warn("⚠️ Local firebaseAdminKey.json not found. Firebase features will fail.");
+    }
   }
 
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccountConfig),
-  });
+  // 3. Initialize ONLY if we found a config
+  if (serviceAccountConfig) {
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccountConfig),
+    });
+  } else {
+    console.error("❌ Firebase Admin NOT initialized: No credentials found.");
+  }
 }
 
 async function loginWithFirebase(req, res) {
