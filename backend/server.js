@@ -1,8 +1,8 @@
 require('dotenv').config();
-
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
+const admin = require('firebase-admin');
 
 const connectDB = require('./src/config/db');
 const routes = require('./src/routes');
@@ -10,70 +10,63 @@ const { notFoundHandler, errorHandler } = require('./src/middleware/error.middle
 
 const app = express();
 
-// CORS configuration for Firebase auth
-const corsOptions = {
-  origin: getAllowedOrigins(),
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-};
-
-// Get allowed origins based on environment
-function getAllowedOrigins() {
-  const allowedOrigins = [
-    'http://localhost:5173', // Vite default dev port
-    'http://localhost:3000',
-    'http://127.0.0.1:5173',
-    'http://127.0.0.1:3000',
-  ];
-
-  // Add production frontend URLs from environment variables
-  if (process.env.FRONTEND_URL) {
-    allowedOrigins.push(process.env.FRONTEND_URL);
-  }
-  
-  if (process.env.VERCEL_URL) {
-    // For Vercel deployments
-    allowedOrigins.push(`https://${process.env.VERCEL_URL}`);
+// ==========================================
+// FIREBASE INITIALIZATION
+// ==========================================
+try {
+  let serviceAccount;
+  if (process.env.FIREBASE_CREDENTIALS) {
+    serviceAccount = JSON.parse(process.env.FIREBASE_CREDENTIALS);
+  } else {
+    try {
+      serviceAccount = require('./serviceAccountKey.json');
+    } catch (err) {
+      console.warn("⚠️ No Firebase credentials found.");
+    }
   }
 
-  return allowedOrigins;
+  if (serviceAccount && admin.apps.length === 0) {
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount)
+    });
+    console.log("✅ Firebase Admin Initialized");
+  }
+} catch (error) {
+  console.error("❌ Firebase Init Error:", error.message);
 }
 
-// Middleware
-app.use(cors(corsOptions));
+// ==========================================
+// SIMPLIFIED CORS (Allow All for Deployment)
+// ==========================================
+app.use(cors({
+  origin: "*", 
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json());
 app.use(morgan('dev'));
 
-// Health check endpoint
+// Routes
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Routes
 app.use('/api', routes);
 
-// 404 handler
 app.use(notFoundHandler);
-
-// Central error handler
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 async function startServer() {
   try {
     await connectDB();
-
-    // NOTE: Seeding disabled on startup to avoid duplicate inserts.
-    // If you need to seed again, run the seed scripts manually.
-
     app.listen(PORT, () => {
-      // eslint-disable-next-line no-console
       console.log(`Server is running on port ${PORT}`);
     });
   } catch (error) {
-    // eslint-disable-next-line no-console
     console.error('Failed to start server:', error);
     process.exit(1);
   }
