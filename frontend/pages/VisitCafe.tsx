@@ -9,14 +9,12 @@ import { Scene, NavigationUI } from "../components/visitCafe";
 const VisitCafe: React.FC = () => {
   const navigate = useNavigate();
 
-  // This handles redirection from 3D → real pages
   const handleNavigate = (page: "menu" | "art" | "workshops") => {
     navigate(`/${page}`);
   };
 
   return (
     <div className="relative w-full h-screen bg-[#fdfbf7] overflow-hidden">
-      {/* 3D Scene */}
       <Suspense
         fallback={
           <div className="flex items-center justify-center w-full h-full bg-[#fdfbf7]">
@@ -32,16 +30,18 @@ const VisitCafe: React.FC = () => {
         <Canvas
           shadows
           dpr={[1, 1.5]}
-          camera={{ position: [0, 1.7, 5], fov: 60 }}
+          camera={{
+            position: [0, 1.7, 5],
+            fov: 60,
+            near: 0.1,
+            far: 50
+          }}
         >
           <Scene onNavigate={handleNavigate} />
         </Canvas>
       </Suspense>
 
-      {/* Navigation UI (arrows / controls) */}
       <NavigationUI />
-
-      {/* Loader from drei */}
       <Loader />
     </div>
   );
