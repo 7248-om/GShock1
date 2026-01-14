@@ -4,7 +4,7 @@ import axios from 'axios';
 
 // --- COMPONENTS ---
 import Layout from './admin/Layout';
-import Header from '@/components/Header'; // Ensure this path matches your project
+import Header from '../components/Header'; // Ensure this path matches your project
 import Dashboard from './admin/Dashboard';
 import MenuManagement from './admin/MenuManagement';
 import OrderManagement from './admin/OrderManagement';

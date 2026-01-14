@@ -6,9 +6,9 @@ import SplitSection from '../components/SplitSection';
 import DoubleSplit from '../components/DoubleSplit';
 // import Arches from '../components/Arches';
 import GridMenu from '../components/GridMenu';
-import SplitSection2 from '@/components/SplitSection2';
-import Highlights from '@/components/Highlights';
-import SuggestionSection from '@/components/SuggestionSection';
+import SplitSection2 from '../components/SplitSection2';
+import Highlights from '../components/Highlights';
+import SuggestionSection from '../components/SuggestionSection';
 
 const Home: React.FC = () => {
   const [showPopup, setShowPopup] = useState(false);

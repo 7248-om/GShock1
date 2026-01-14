@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import axios from 'axios';
 import ArtCard from '../components/art/ArtCard';
 import FilterBar from '../components/art/FilterBar';
-import Sidebar from '@/components/art/Sidebar';
+import Sidebar from '../components/art/Sidebar';
 import FeaturedInterstitial from '../components/art/FeaturedInterstitial';
 import { SortOption } from '../components/art/types';
 
