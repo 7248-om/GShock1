@@ -1,13 +1,13 @@
 
-export type LocationState = 'ENTRANCE' | 'CENTER' | 'COUNTER' | 'ART_WALL' | 'WORKSHOP_AREA';
+export interface ControlState {
+  forward: boolean;
+  backward: boolean;
+  left: boolean;
+  right: boolean;
+}
 
-// Fixed: Added NavigationState to match usage in components
-export type NavigationState = 'home' | 'menu' | 'art' | 'workshops';
-
-export interface PointOfInterest {
-  id: string;
-  label: string;
-  description?: string;
-  path: string;
-  position: [number, number, number];
+export interface PlayerPosition {
+  x: number;
+  z: number;
+  rotation: number;
 }
