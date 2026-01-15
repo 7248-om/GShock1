@@ -1,56 +1,55 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react'; // Added AlertCircle for errors
-
-// Import from your Context (Adjust path if needed)
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext'; 
 
 const LoginForm: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   
-  // 1. Context & State Integration
-  const { user, loginWithGoogle, loading } = useAuth();
+  // Destructure login function from context (Ensure 'login' is exposed in your AuthContext)
+  // If your context names it 'loginWithEmail', change 'login' to 'loginWithEmail' below.
+  const { user, loginWithGoogle, login, loading } = useAuth();
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 2. Redirect Effect
+  // 1. Handle Redirect & Success Messages
   useEffect(() => {
+    // If user is already logged in, redirect home
     if (user) {
-      navigate('/'); // Change to your intended route
+      navigate('/'); 
     }
-  }, [user, navigate]);
 
-  // 3. Robust Google Handler
+    // Check for success message from Signup page
+    if (location.state?.successMessage) {
+      setSuccessMessage(location.state.successMessage);
+      // Clear state so message doesn't persist on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [user, navigate, location]);
+
+  // 2. Google Handler
   const handleGoogleSignIn = async () => {
     try {
       setError("");
       await loginWithGoogle();
-      // Context handles the redirect via useEffect above
     } catch (error: any) {
       let errorMessage = "Google Sign-In failed";
-      
       if (error instanceof Error) {
-        // Handle specific Firebase errors
-        if (error.message.includes('popup-closed')) {
-          errorMessage = "Sign-in popup was closed";
-        } else if (error.message.includes('popup-blocked')) {
-          errorMessage = "Pop-ups are blocked. Please enable them and try again";
-        } else if (error.message.includes('network')) {
-          errorMessage = "Network error. Please check your connection";
-        } else {
-            errorMessage = error.message;
-        }
+        if (error.message.includes('popup-closed')) errorMessage = "Sign-in popup was closed";
+        else if (error.message.includes('popup-blocked')) errorMessage = "Pop-ups are blocked.";
+        else errorMessage = error.message;
       }
       setError(errorMessage);
-      console.error("Google Sign-In Error:", error);
     }
   };
 
-  // 4. Email/Password Handler
+  // 3. Email/Password Handler
   const handleEmailPasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -60,17 +59,22 @@ const LoginForm: React.FC = () => {
     }
 
     setError("");
+    setSuccessMessage(""); // Clear old success messages on new attempt
     setIsSubmitting(true);
 
     try {
-      // Add your actual email login logic here
-      // await loginWithEmail(email, password);
-      console.log("Login attempted with:", email);
-      
-      // Placeholder error for now as per your example
-      setError("Email/password login not yet configured"); 
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed");
+      if (login) {
+        // ACTUAL BACKEND CONNECTION
+        await login(email, password);
+      } else {
+        // Fallback if context isn't ready yet (for testing UI)
+        console.warn("Login function not found in AuthContext");
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Fake delay
+        // throw new Error("Backend connection missing. Check AuthContext.");
+      }
+      // Navigation is handled by the useEffect watching 'user'
+    } catch (err: any) {
+      setError(err.message || "Invalid email or password");
     } finally {
       setIsSubmitting(false);
     }
@@ -82,6 +86,14 @@ const LoginForm: React.FC = () => {
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col items-center max-w-md w-full mx-auto">
       <h2 className="text-[40px] font-display text-[#4E342E] font-bold mb-8 tracking-tight">Welcome Back</h2>
       
+      {/* Success Popup (From Signup) */}
+      {successMessage && (
+        <div className="w-full mb-6 p-4 bg-green-50 border border-green-200 rounded-2xl flex items-start gap-3 text-green-800 text-sm animate-in zoom-in-95 duration-300">
+          <CheckCircle2 className="w-5 h-5 shrink-0 text-green-600" />
+          <p className="font-medium">{successMessage}</p>
+        </div>
+      )}
+
       {/* Error Display */}
       {error && (
         <div className="w-full mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-3 text-red-700 text-sm">
@@ -132,7 +144,8 @@ const LoginForm: React.FC = () => {
             </button>
           </div>
           <div className="mt-3 text-right">
-            <Link to="/forgot-password" className="text-sm text-[#EC9706] font-semibold hover:underline">Forgot your password?</Link>
+            {/* FIXED LINK: Added /login prefix */}
+            <Link to="/login/forgot-password" className="text-sm text-[#EC9706] font-semibold hover:underline">Forgot your password?</Link>
           </div>
         </div>
 
@@ -191,7 +204,9 @@ const LoginForm: React.FC = () => {
           </button>
 
           <p className="text-sm text-gray-600 mt-2 font-medium">
-            New to the cafe? <Link to="/signup" className="text-[#EC9706] font-bold hover:underline">Join Us</Link>
+            New to the cafe? 
+            {/* FIXED LINK: Added /login prefix */}
+            <Link to="/login/signup" className="text-[#EC9706] font-bold hover:underline ml-1">Join Us</Link>
           </p>
         </div>
       </form>

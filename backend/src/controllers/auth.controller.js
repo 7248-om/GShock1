@@ -1,12 +1,12 @@
 const admin = require('firebase-admin');
 const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer'); // <--- NEW IMPORT
 const User = require('../models/user.model');
 
-// Initialize Firebase Admin SDK if not already initialized
+// --- FIREBASE INITIALIZATION (Unchanged) ---
 if (!admin.apps.length) {
-  let serviceAccountConfig = null; // Start as null
+  let serviceAccountConfig = null;
 
-  // 1. Try to load from Environment Variable (Render/Production)
   if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
     try {
       serviceAccountConfig = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
@@ -14,11 +14,8 @@ if (!admin.apps.length) {
     } catch (err) {
       console.error("❌ Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY:", err.message);
     }
-  } 
-  // 2. If no Env Var, try to load local file (Development)
-  else {
+  } else {
     try {
-      // Use a try-catch so requiring a missing file doesn't crash the server
       serviceAccountConfig = require('../config/firebaseAdminKey.json');
       console.log("✅ Loaded Firebase config from local file");
     } catch (err) {
@@ -26,7 +23,6 @@ if (!admin.apps.length) {
     }
   }
 
-  // 3. Initialize ONLY if we found a config
   if (serviceAccountConfig) {
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccountConfig),
@@ -36,35 +32,35 @@ if (!admin.apps.length) {
   }
 }
 
+// --- EMAIL TRANSPORTER CONFIGURATION ---
+const transporter = nodemailer.createTransport({
+  service: 'gmail', 
+  auth: {
+    user: process.env.EMAIL_USER, // Add to .env
+    pass: process.env.EMAIL_PASS  // Add to .env (App Password)
+  }
+});
+
+// Helper: Generate 6-digit OTP
+const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
+
+
+// --- 1. EXISTING LOGIN FUNCTION ---
 async function loginWithFirebase(req, res) {
   const { idToken } = req.body || {};
 
   if (!idToken) {
-    console.log('❌ No idToken provided');
-    return res.status(400).json({ 
-      success: false,
-      message: 'idToken is required' 
-    });
+    return res.status(400).json({ success: false, message: 'idToken is required' });
   }
 
   try {
-    console.log('🔐 Verifying Firebase ID token...');
-    // 1. Verify Firebase ID token
     const decodedToken = await admin.auth().verifyIdToken(idToken);
     const { email, name, uid } = decodedToken;
 
-    console.log('✅ Firebase token verified for:', email);
-
     if (!email) {
-      return res
-        .status(400)
-        .json({ 
-          success: false,
-          message: 'Email not available from Firebase token' 
-        });
+      return res.status(400).json({ success: false, message: 'Email not available from Firebase token' });
     }
 
-    // 2. Find or create user in MongoDB
     let user = await User.findOne({ email });
 
     if (!user) {
@@ -75,28 +71,20 @@ async function loginWithFirebase(req, res) {
         firebaseUid: uid,
       });
     } else {
-      console.log('👤 User already exists:', email);
-      // Update firebaseUid if not set
       if (!user.firebaseUid) {
         user.firebaseUid = uid;
         await user.save();
       }
     }
 
-    // 3. Issue backend JWT
     const payload = {
       sub: user._id.toString(),
       email: user.email,
       role: user.role,
     };
 
-    const token = jwt.sign(payload, process.env.JWT_SECRET, {
-      expiresIn: '7d',
-    });
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' });
 
-    console.log('🎫 JWT token issued for user:', user._id);
-
-    // 4. Return user + JWT
     return res.status(200).json({
       success: true,
       token,
@@ -108,31 +96,127 @@ async function loginWithFirebase(req, res) {
       },
     });
   } catch (error) {
-    // eslint-disable-next-line no-console
     console.error('❌ Firebase login failed:', error.message);
-    console.error('Error code:', error.code);
-    
     let statusCode = 401;
     let message = 'Invalid Firebase token';
     
-    // Provide more specific error messages
-    if (error.code === 'auth/id-token-expired') {
-      message = 'Firebase token has expired. Please sign in again.';
-    } else if (error.code === 'auth/invalid-id-token') {
-      message = 'Invalid Firebase token format.';
-    } else if (error.message.includes('ECONNREFUSED')) {
-      statusCode = 503;
-      message = 'Backend service is unavailable. Please try again later.';
-    }
+    if (error.code === 'auth/id-token-expired') message = 'Firebase token has expired.';
+    else if (error.code === 'auth/invalid-id-token') message = 'Invalid Firebase token format.';
     
-    return res.status(statusCode).json({ 
-      success: false,
-      message,
-      error: error.message 
+    return res.status(statusCode).json({ success: false, message, error: error.message });
+  }
+}
+
+// --- 2. SEND OTP (FORGOT PASSWORD) ---
+async function forgotPasswordOtp(req, res) {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ success: false, message: "No account found with this email." });
+    }
+
+    // Generate OTP and Expiry (5 minutes)
+    const otp = generateOTP();
+    const otpExpires = Date.now() + 5 * 60 * 1000;
+
+    // Save to DB (Ensure your User Schema has these fields)
+    user.resetPasswordOtp = otp;
+    user.resetPasswordExpires = otpExpires;
+    await user.save();
+
+    // Send Email
+    await transporter.sendMail({
+      from: '"Rabuste Cafe" <no-reply@rabustecafe.com>',
+      to: email,
+      subject: 'Password Reset OTP',
+      html: `
+        <h3>Password Reset Request</h3>
+        <p>Your OTP code is: <b style="font-size: 24px;">${otp}</b></p>
+        <p>This code expires in 5 minutes.</p>
+      `
     });
+
+    res.json({ success: true, message: "OTP sent successfully" });
+
+  } catch (error) {
+    console.error("❌ Forgot Password Error:", error);
+    res.status(500).json({ success: false, message: "Failed to send OTP" });
+  }
+}
+
+// --- 3. VERIFY OTP ---
+async function verifyOtp(req, res) {
+  try {
+    const { email, otp } = req.body;
+
+    const user = await User.findOne({ 
+      email,
+      resetPasswordOtp: otp,
+      resetPasswordExpires: { $gt: Date.now() } // Check if not expired
+    });
+
+    if (!user) {
+      return res.status(400).json({ success: false, message: "Invalid or expired OTP" });
+    }
+
+    res.json({ success: true, message: "OTP verified successfully" });
+
+  } catch (error) {
+    console.error("❌ Verify OTP Error:", error);
+    res.status(500).json({ success: false, message: "Verification failed" });
+  }
+}
+
+// --- 4. RESET PASSWORD ---
+async function resetPassword(req, res) {
+  try {
+    const { email, otp, newPassword } = req.body;
+
+    // Verify OTP one last time
+    const user = await User.findOne({ 
+      email,
+      resetPasswordOtp: otp,
+      resetPasswordExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ success: false, message: "Invalid request or OTP expired" });
+    }
+
+    // Determine Firebase UID
+    let uid = user.firebaseUid;
+    if (!uid) {
+      try {
+        const firebaseUser = await admin.auth().getUserByEmail(email);
+        uid = firebaseUser.uid;
+      } catch (err) {
+        return res.status(500).json({ success: false, message: "Could not find linked Firebase account." });
+      }
+    }
+
+    // Update Password in Firebase
+    await admin.auth().updateUser(uid, {
+      password: newPassword
+    });
+
+    // Clear OTP fields
+    user.resetPasswordOtp = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    res.json({ success: true, message: "Password updated successfully" });
+
+  } catch (error) {
+    console.error("❌ Reset Password Error:", error);
+    res.status(500).json({ success: false, message: "Failed to reset password" });
   }
 }
 
 module.exports = {
   loginWithFirebase,
+  forgotPasswordOtp,
+  verifyOtp,
+  resetPassword
 };

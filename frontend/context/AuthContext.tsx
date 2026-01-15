@@ -1,5 +1,13 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { onAuthStateChanged, User as FirebaseUser, signInWithPopup, signOut } from 'firebase/auth';
+import { 
+  onAuthStateChanged, 
+  User as FirebaseUser, 
+  signInWithPopup, 
+  signOut,
+  signInWithEmailAndPassword, // Added
+  createUserWithEmailAndPassword, // Added
+  updateProfile // Added
+} from 'firebase/auth';
 import { auth, googleProvider } from '../firebase';
 import axios from 'axios';
 
@@ -17,13 +25,16 @@ interface AuthContextType {
   token: string | null; // backend JWT
   loading: boolean;
   loginWithGoogle: () => Promise<void>;
+  // NEW: Added types for email/password
+  login: (email: string, password: string) => Promise<void>; 
+  register: (email: string, password: string, name: string) => Promise<void>;
   logout: () => Promise<void>;
   fetchBackendUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Backend base URL: set VITE_BACKEND_API_URL in frontend .env; falls back to relative /api
+// Backend base URL
 const API_BASE_URL = typeof import.meta !== 'undefined' && import.meta.env 
   ? (import.meta.env as Record<string, string>).VITE_BACKEND_API_URL || '/api'
   : '/api';
@@ -31,21 +42,18 @@ const API_BASE_URL = typeof import.meta !== 'undefined' && import.meta.env
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
-  const [token, setToken] = useState<string | null>(localStorage.getItem('authToken')); // backend JWT
+  const [token, setToken] = useState<string | null>(localStorage.getItem('authToken')); 
   const [loading, setLoading] = useState(true);
 
-  // Called after Firebase login to sync/create user in backend and get backend JWT
+  // --- Backend Sync Logic (Unchanged) ---
   const syncWithBackend = async (idToken: string) => {
     try {
       console.log('🔄 Syncing with backend. API_BASE_URL:', API_BASE_URL);
-      console.log('📤 Sending idToken to:', `${API_BASE_URL}/auth/login`);
       
       const response = await axios.post(`${API_BASE_URL}/auth/login`, {
         idToken,
       }, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
       });
 
       console.log('📥 Backend response:', response.data);
@@ -62,16 +70,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('authToken', backendToken);
     } catch (error) {
       console.error('❌ Failed to sync auth with backend:', error);
-      
-      // Log more details for debugging
       if (axios.isAxiosError(error)) {
-        console.error('❌ Backend error response:', error.response?.data);
-        console.error('❌ Backend error status:', error.response?.status);
         console.error('❌ Backend error message:', error.message);
-        console.error('❌ Backend request URL:', error.config?.url);
-        console.error('❌ Backend request headers:', error.config?.headers);
       }
-      
       setUser(null);
       setToken(null);
       localStorage.removeItem('authToken');
@@ -81,12 +82,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchBackendUser = async () => {
     if (!token) return;
-
     try {
       const response = await axios.get(`${API_BASE_URL}/users/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       setUser(response.data);
     } catch (error) {
@@ -95,17 +93,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // --- Auth State Listener ---
   useEffect(() => {
-    console.log('🔐 Setting up auth state listener...');
     const unsubscribe = onAuthStateChanged(auth, async (userCredential) => {
-      console.log('🔍 Auth state changed. User:', userCredential?.email || 'None');
       setFirebaseUser(userCredential);
 
       if (userCredential) {
         try {
           const idToken = await userCredential.getIdToken();
-          console.log('✅ Firebase user authenticated. Email:', userCredential.email);
-          console.log('🔑 ID Token length:', idToken.length);
           await syncWithBackend(idToken);
         } catch (error) {
           console.error('❌ Failed to sync with backend after Firebase auth:', error);
@@ -114,41 +109,70 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           localStorage.removeItem('authToken');
         }
       } else {
-        console.log('⏹️ User logged out');
         setUser(null);
         setToken(null);
         localStorage.removeItem('authToken');
       }
-
       setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
 
+  // --- Auth Actions ---
+
   const loginWithGoogle = async () => {
     setLoading(true);
     try {
-      console.log('🔵 Starting Google Sign-In...');
-      console.log('📱 Auth instance:', auth);
-      console.log('🔑 Google provider configured');
-      
       const result = await signInWithPopup(auth, googleProvider);
-      if (!result.user) {
-        throw new Error('No user returned from Google sign-in');
-      }
-      console.log('✅ Google Sign-In successful:', result.user.email);
-      console.log('👤 Firebase UID:', result.user.uid);
-      // onAuthStateChanged will handle backend sync
+      if (!result.user) throw new Error('No user returned from Google sign-in');
     } catch (error: any) {
-      console.error('❌ Firebase Google login failed:', error);
-      console.error('Error code:', error?.code);
-      console.error('Error message:', error?.message);
+      console.error('❌ Google login failed:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // NEW: Email Login
+  const login = async (email: string, password: string) => {
+    setLoading(true);
+    try {
+      console.log('🔵 Starting Email Login...');
+      await signInWithEmailAndPassword(auth, email, password);
+      console.log('✅ Firebase Email Login successful');
+      // onAuthStateChanged will handle the backend sync automatically
+    } catch (error: any) {
+      console.error('❌ Email Login failed:', error.message);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // NEW: Email Registration
+  const register = async (email: string, password: string, name: string) => {
+    setLoading(true);
+    try {
+      console.log('🔵 Starting Registration...');
       
-      setUser(null);
-      setToken(null);
-      localStorage.removeItem('authToken');
-      setFirebaseUser(null);
+      // 1. Create User in Firebase
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      
+      // 2. Update the "Display Name" in Firebase immediately
+      if (userCredential.user) {
+        await updateProfile(userCredential.user, {
+          displayName: name
+        });
+        
+        // 3. Force token refresh to ensure backend sees the new name (optional but recommended)
+        await userCredential.user.getIdToken(true);
+      }
+
+      console.log('✅ Registration successful for:', email);
+      // onAuthStateChanged will trigger and sync with backend
+    } catch (error: any) {
+      console.error('❌ Registration failed:', error.message);
       throw error;
     } finally {
       setLoading(false);
@@ -163,7 +187,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setToken(null);
       localStorage.removeItem('authToken');
     } catch (error) {
-      console.error('Firebase logout failed:', error);
+      console.error('Logout failed:', error);
     } finally {
       setLoading(false);
     }
@@ -171,7 +195,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, firebaseUser, token, loading, loginWithGoogle, logout, fetchBackendUser }}
+      value={{ 
+        user, 
+        firebaseUser, 
+        token, 
+        loading, 
+        loginWithGoogle, 
+        login,     // Exported
+        register,  // Exported
+        logout, 
+        fetchBackendUser 
+      }}
     >
       {children}
     </AuthContext.Provider>

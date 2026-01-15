@@ -13,6 +13,7 @@ export const DARK_BROWN = '#4E342E';
 export const INPUT_BG = '#FFF5E1';
 
 export const COUNTRIES: Country[] = [
+  { name:'India', code: 'IN', flag: '🇮🇳', dialCode: '+91' },
   { name: 'United Kingdom', code: 'GB', flag: '🇬🇧', dialCode: '+44' },
   { name: 'United States', code: 'US', flag: '🇺🇸', dialCode: '+1' },
   { name: 'Germany', code: 'DE', flag: '🇩🇪', dialCode: '+49' },

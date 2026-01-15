@@ -1,19 +1,78 @@
-
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Mail, Lock, User, Eye, EyeOff, ChevronDown } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Mail, Lock, User, Eye, EyeOff, ChevronDown, Loader2, AlertCircle } from 'lucide-react';
 import { COUNTRIES } from './constants';
+import { useAuth } from '../../context/AuthContext'; // Import Context
 
 const SignupForm: React.FC = () => {
+  const navigate = useNavigate();
+  // Ensure 'register' is destructured from your AuthContext
+  const { register } = useAuth(); 
+
   const [showPassword, setShowPassword] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(COUNTRIES[0]);
   const [agreed, setAgreed] = useState(false);
+  
+  // Form State
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    fullName: '',
+    phone: ''
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (!agreed) {
+      setError("You must agree to the Terms & Conditions");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // 1. Call the register function from AuthContext
+      await register(formData.email, formData.password, formData.fullName);
+      
+      // 2. Redirect to Login with Success Message
+      navigate('/login', { 
+        state: { successMessage: 'Account created successfully! Please log in.' } 
+      });
+      
+    } catch (err: any) {
+      // Handle Firebase errors (e.g., email already in use)
+      let msg = "Failed to create account";
+      if (err.code === 'auth/email-already-in-use') msg = "That email is already registered.";
+      else if (err.code === 'auth/weak-password') msg = "Password should be at least 6 characters.";
+      else if (err.message) msg = err.message;
+      
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 pb-12">
       <h2 className="text-[40px] font-display text-[#4E342E] font-bold mb-10 tracking-tight">Become a Member</h2>
       
-      <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+      {/* Error Display */}
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-3 text-red-700 text-sm">
+          <AlertCircle className="w-5 h-5 shrink-0" />
+          <p>{error}</p>
+        </div>
+      )}
+      
+      <form className="space-y-4" onSubmit={handleSignup}>
         {/* Email */}
         <div className="group">
           <div className="relative flex items-center bg-[#FFF5E1] rounded-2xl border border-transparent group-focus-within:border-[#EC9706] group-focus-within:bg-white transition-all duration-200">
@@ -21,8 +80,11 @@ const SignupForm: React.FC = () => {
               <Mail className="w-5 h-5" />
             </div>
             <input 
+              name="email"
               type="email" 
+              required
               placeholder="Email"
+              onChange={handleChange}
               className="w-full py-5 px-4 bg-transparent outline-none text-gray-800 placeholder:text-gray-400 font-medium"
             />
           </div>
@@ -35,8 +97,11 @@ const SignupForm: React.FC = () => {
               <Lock className="w-5 h-5" />
             </div>
             <input 
+              name="password"
               type={showPassword ? 'text' : 'password'} 
+              required
               placeholder="Password"
+              onChange={handleChange}
               className="w-full py-5 px-4 bg-transparent outline-none text-gray-800 placeholder:text-gray-400 font-medium"
             />
             <button 
@@ -56,8 +121,11 @@ const SignupForm: React.FC = () => {
               <User className="w-5 h-5" />
             </div>
             <input 
+              name="fullName"
               type="text" 
+              required
               placeholder="Full Name"
+              onChange={handleChange}
               className="w-full py-5 px-4 bg-transparent outline-none text-gray-800 placeholder:text-gray-400 font-medium"
             />
           </div>
@@ -71,8 +139,10 @@ const SignupForm: React.FC = () => {
               <span>{selectedCountry.dialCode}</span>
             </div>
             <input 
+              name="phone"
               type="tel" 
               placeholder="Mobile Number"
+              onChange={handleChange}
               className="w-full py-5 px-4 bg-transparent outline-none text-gray-800 placeholder:text-gray-400 font-medium"
             />
           </div>
@@ -103,14 +173,14 @@ const SignupForm: React.FC = () => {
         <div className="pt-6 flex flex-col items-center">
           <button 
             type="submit"
-            disabled={!agreed}
-            className={`w-full py-4 rounded-2xl font-bold text-lg shadow-lg transition-all transform active:scale-[0.98] ${
-              agreed 
+            disabled={!agreed || loading}
+            className={`w-full py-4 rounded-2xl font-bold text-lg shadow-lg transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 ${
+              agreed && !loading
               ? "bg-[#EC9706] text-white hover:bg-[#B57B24] opacity-100" 
               : "bg-[#FFF5E1] text-gray-300 cursor-not-allowed"
             }`}
           >
-            Create Account
+            {loading ? <Loader2 className="animate-spin w-6 h-6" /> : "Create Account"}
           </button>
           
           <p className="text-sm text-gray-600 mt-6 font-medium">

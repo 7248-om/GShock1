@@ -1,20 +1,38 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, ShieldCheck, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { Mail, ArrowLeft, CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
+import { getAuth, sendPasswordResetEmail } from 'firebase/auth'; // Direct import for simplicity
 
-type Step = 'REQUEST' | 'VERIFY' | 'RESET' | 'SUCCESS';
+type Step = 'REQUEST' | 'SUCCESS';
 
 const ForgotPasswordForm: React.FC = () => {
   const [step, setStep] = useState<Step>('REQUEST');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleNext = (e: React.FormEvent) => {
+  const handleResetRequest = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (step === 'REQUEST') setStep('VERIFY');
-    else if (step === 'VERIFY') setStep('RESET');
-    else if (step === 'RESET') setStep('SUCCESS');
+    if (!email) return;
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const auth = getAuth();
+      // This sends the standard Firebase Password Reset Link
+      await sendPasswordResetEmail(auth, email);
+      setStep('SUCCESS');
+    } catch (err: any) {
+      console.error(err);
+      if (err.code === 'auth/user-not-found') {
+        setError("No account found with this email.");
+      } else {
+        setError("Failed to send reset email. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const renderStep = () => {
@@ -27,9 +45,16 @@ const ForgotPasswordForm: React.FC = () => {
               Back to Sign In
             </Link>
             <h2 className="text-[32px] font-display text-[#4E342E] font-bold mb-4 tracking-tight">Recover Account</h2>
-            <p className="text-gray-500 mb-8 font-medium">Enter your email and we'll send a fresh OTP to your inbox.</p>
+            <p className="text-gray-500 mb-8 font-medium">Enter your email and we'll send a reset link to your inbox.</p>
             
-            <form className="space-y-6" onSubmit={handleNext}>
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-3 text-red-700 text-sm">
+                <AlertCircle className="w-5 h-5 shrink-0" />
+                <p>{error}</p>
+              </div>
+            )}
+
+            <form className="space-y-6" onSubmit={handleResetRequest}>
               <div className="group">
                 <div className="relative flex items-center bg-[#FFF5E1] rounded-2xl border border-transparent group-focus-within:border-[#EC9706] group-focus-within:bg-white transition-all duration-200">
                   <div className="pl-5 text-[#4E342E]/40">
@@ -38,6 +63,8 @@ const ForgotPasswordForm: React.FC = () => {
                   <input 
                     required
                     type="email" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     placeholder="Email Address"
                     className="w-full py-5 px-4 bg-transparent outline-none text-gray-800 placeholder:text-gray-400 font-medium"
                   />
@@ -45,111 +72,11 @@ const ForgotPasswordForm: React.FC = () => {
               </div>
               <button 
                 type="submit"
-                className="w-full bg-[#EC9706] text-white py-4 rounded-2xl font-bold text-lg shadow-lg hover:bg-[#B57B24] transition-all transform active:scale-[0.98]"
+                disabled={loading}
+                className="w-full bg-[#EC9706] text-white py-4 rounded-2xl font-bold text-lg shadow-lg hover:bg-[#B57B24] transition-all transform active:scale-[0.98] flex justify-center items-center"
               >
-                Send OTP
+                {loading ? <Loader2 className="animate-spin" /> : "Send Reset Link"}
               </button>
-            </form>
-          </div>
-        );
-
-      case 'VERIFY':
-        return (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <h2 className="text-[32px] font-display text-[#4E342E] font-bold mb-4 tracking-tight">Verify Roast</h2>
-            <p className="text-gray-500 mb-8 font-medium">Check your inbox for a 6-digit code. Don't let it get cold!</p>
-            
-            <form className="space-y-6" onSubmit={handleNext}>
-              <div className="group">
-                <div className="relative flex items-center bg-[#FFF5E1] rounded-2xl border border-transparent group-focus-within:border-[#EC9706] group-focus-within:bg-white transition-all duration-200">
-                  <div className="pl-5 text-[#4E342E]/40">
-                    <ShieldCheck className="w-5 h-5" />
-                  </div>
-                  <input 
-                    required
-                    type="text" 
-                    maxLength={6}
-                    placeholder="000000"
-                    className="w-full py-5 px-4 bg-transparent outline-none text-gray-800 placeholder:text-gray-400 font-medium tracking-[0.5em] text-center uppercase"
-                  />
-                </div>
-              </div>
-              <div className="flex flex-col gap-4">
-                <button 
-                  type="submit"
-                  className="w-full bg-[#EC9706] text-white py-4 rounded-2xl font-bold text-lg shadow-lg hover:bg-[#B57B24] transition-all transform active:scale-[0.98]"
-                >
-                  Verify Now
-                </button>
-                <button 
-                  type="button"
-                  onClick={() => setStep('REQUEST')}
-                  className="text-sm text-[#EC9706] font-bold hover:underline"
-                >
-                  Request a New Code
-                </button>
-              </div>
-            </form>
-          </div>
-        );
-
-      case 'RESET':
-        return (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <h2 className="text-[32px] font-display text-[#4E342E] font-bold mb-4 tracking-tight">New Password</h2>
-            <p className="text-gray-500 mb-8 font-medium">Create a strong password to protect your account.</p>
-            
-            <form className="space-y-4" onSubmit={handleNext}>
-              <div className="group">
-                <div className="relative flex items-center bg-[#FFF5E1] rounded-2xl border border-transparent group-focus-within:border-[#EC9706] group-focus-within:bg-white transition-all duration-200">
-                  <div className="pl-5 text-[#4E342E]/40">
-                    <Lock className="w-5 h-5" />
-                  </div>
-                  <input 
-                    required
-                    type={showPassword ? 'text' : 'password'} 
-                    placeholder="New Password"
-                    className="w-full py-5 px-4 bg-transparent outline-none text-gray-800 placeholder:text-gray-400 font-medium"
-                  />
-                  <button 
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="pr-5 text-gray-400 hover:text-gray-600"
-                  >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
-              </div>
-
-              <div className="group">
-                <div className="relative flex items-center bg-[#FFF5E1] rounded-2xl border border-transparent group-focus-within:border-[#EC9706] group-focus-within:bg-white transition-all duration-200">
-                  <div className="pl-5 text-[#4E342E]/40">
-                    <Lock className="w-5 h-5" />
-                  </div>
-                  <input 
-                    required
-                    type={showConfirmPassword ? 'text' : 'password'} 
-                    placeholder="Confirm New Password"
-                    className="w-full py-5 px-4 bg-transparent outline-none text-gray-800 placeholder:text-gray-400 font-medium"
-                  />
-                  <button 
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="pr-5 text-gray-400 hover:text-gray-600"
-                  >
-                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
-              </div>
-
-              <div className="pt-4">
-                <button 
-                  type="submit"
-                  className="w-full bg-[#EC9706] text-white py-4 rounded-2xl font-bold text-lg shadow-lg hover:bg-[#B57B24] transition-all transform active:scale-[0.98]"
-                >
-                  Save Password
-                </button>
-              </div>
             </form>
           </div>
         );
@@ -160,8 +87,8 @@ const ForgotPasswordForm: React.FC = () => {
             <div className="w-20 h-20 bg-[#FFF5E1] rounded-full flex items-center justify-center mb-8">
               <CheckCircle2 className="w-12 h-12 text-[#EC9706]" />
             </div>
-            <h2 className="text-[32px] font-display text-[#4E342E] font-bold mb-4 tracking-tight">Success!</h2>
-            <p className="text-gray-500 mb-10 font-medium">Your password has been updated. You're all set to get back to the coffee.</p>
+            <h2 className="text-[32px] font-display text-[#4E342E] font-bold mb-4 tracking-tight">Check your Inbox</h2>
+            <p className="text-gray-500 mb-10 font-medium">We've sent a password reset link to <br/><span className="text-[#4E342E] font-bold">{email}</span></p>
             
             <Link 
               to="/login"
@@ -169,6 +96,13 @@ const ForgotPasswordForm: React.FC = () => {
             >
               Back to Sign In
             </Link>
+            
+            <button 
+              onClick={() => setStep('REQUEST')}
+              className="mt-6 text-sm text-gray-400 hover:text-gray-600 font-medium"
+            >
+              Didn't receive it? Try again
+            </button>
           </div>
         );
     }

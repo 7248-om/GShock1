@@ -23,7 +23,6 @@ import Profile from './pages/Profile';
 import Artist from './pages/Artist';
 import OurStory from './pages/OurStory';
 import VisitCafe from "./pages/VisitCafe";
-
 const App = () => {
   const location = useLocation();
   const isAuthPage = location.pathname.startsWith('/login') || location.pathname.startsWith('/admin');
@@ -37,7 +36,7 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/menu" element={<Menu />} />
-            <Route path="/login" element={<Login />} />
+            <Route path="/login/*" element={<Login />} />
             <Route path="/admin/*" element={<Admin />} />
             <Route path="/payment" element={<Payment />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
