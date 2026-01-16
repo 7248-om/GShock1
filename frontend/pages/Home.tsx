@@ -9,6 +9,7 @@ import GridMenu from '../components/GridMenu';
 import SplitSection2 from '../components/SplitSection2';
 import Highlights from '../components/Highlights';
 import SuggestionSection from '../components/SuggestionSection';
+import { GoogleReviews } from '../components/GoogleReviews';
 
 const Home: React.FC = () => {
   const [showPopup, setShowPopup] = useState(false);
@@ -190,6 +191,7 @@ const Home: React.FC = () => {
         ctaLink="#"
         backgroundColor="bg-cream"
       />
+      <GoogleReviews />
       <SplitSection2
         alignment="center"
         mediaUrl="https://images.unsplash.com/photo-1521017432531-fbd92d768814"

@@ -2,7 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Search, Plus, MoreVertical, X, Image as ImageIcon, Trash2, Palette } from 'lucide-react';
 import { Artwork, ArtStatus } from '../types';
-
+// ---- FIXED TAG GROUPS (ADD ONLY) ----
+const TAG_GROUPS = {
+  Bold: ["abstract", "bold", "chaotic", "high_contrast", "dark", "urban"],
+  Smooth: ["minimalist", "soft", "calm", "pastel", "simple", "modern"],
+  Earthy: ["nature", "landscape", "organic", "green", "texture", "brown"],
+};
 interface Props {
   artworks: Artwork[];
   onAdd: (art: Artwork) => Promise<void>;
@@ -26,16 +31,21 @@ const ArtGalleryManagement: React.FC<Props> = ({ artworks, onAdd, onUpdate, onDe
 
   // Theme Color State (Syncs Text & Picker)
   const [themeColor, setThemeColor] = useState<string>('#000000');
-
+  // ---- TAG STATE (ADD ONLY) ----
+  const [tags, setTags] = useState<string[]>([]);
+  // --------------------------------
+  
   useEffect(() => {
     if (editing) {
       setPrimaryUrl(editing.primaryImageUrl || null);
       setHoverUrl(editing.hoverImageUrl || null);
       setThemeColor(editing.themeColor || '#000000');
+      setTags(editing.tags || []); 
     } else {
       setPrimaryUrl(null);
       setHoverUrl(null);
       setThemeColor('#000000');
+      setTags([]);
     }
   }, [editing]);
 
@@ -62,6 +72,7 @@ const ArtGalleryManagement: React.FC<Props> = ({ artworks, onAdd, onUpdate, onDe
         // Use state for theme color to ensure we capture the hex text or picker value
         themeColor: themeColor, 
         tastingNotes: fd.get('tastingNotes') as string,
+        tags,
       };
       
       if (editing) {
@@ -87,6 +98,14 @@ const ArtGalleryManagement: React.FC<Props> = ({ artworks, onAdd, onUpdate, onDe
     } catch (error: any) {
       alert(error.message || 'Failed to delete artwork');
     }
+  };
+  // ---- TAG TOGGLE HELPER ----
+  const toggleTag = (tag: string) => {
+    setTags(prev =>
+      prev.includes(tag)
+        ? prev.filter(t => t !== tag)
+        : [...prev, tag]
+    );
   };
 
   return (
@@ -146,7 +165,7 @@ const ArtGalleryManagement: React.FC<Props> = ({ artworks, onAdd, onUpdate, onDe
                   <p className="text-[10px] uppercase font-bold text-coffee-500 tracking-widest">Medium</p>
                   <p className="text-xs text-coffee-200">{art.medium}</p>
                 </div>
-                <p className="text-lg font-serif font-bold text-coffee-100">${art.price.toLocaleString()}</p>
+                <p className="text-lg font-serif font-bold text-coffee-100">₹{art.price.toLocaleString()}</p>
               </div>
             </div>
           </div>
@@ -194,7 +213,7 @@ const ArtGalleryManagement: React.FC<Props> = ({ artworks, onAdd, onUpdate, onDe
                   <input name="dimensions" defaultValue={editing?.dimensions} className="w-full bg-coffee-950 border border-coffee-800 rounded-xl px-4 py-3 text-sm text-coffee-100 focus:border-coffee-500 transition-colors outline-none" />
                 </div>
                 <div className="col-span-1">
-                  <label className="text-[10px] uppercase font-bold text-coffee-500 block mb-1">Price ($)</label>
+                  <label className="text-[10px] uppercase font-bold text-coffee-500 block mb-1">Price (₹)</label>
                   <input name="price" type="number" defaultValue={editing?.price} required className="w-full bg-coffee-950 border border-coffee-800 rounded-xl px-4 py-3 text-sm text-coffee-100 focus:border-coffee-500 transition-colors outline-none" />
                 </div>
                 <div className="col-span-1">
@@ -278,8 +297,53 @@ const ArtGalleryManagement: React.FC<Props> = ({ artworks, onAdd, onUpdate, onDe
                 </div>
 
                 <div className="col-span-1">
-                  <label className="text-[10px] uppercase font-bold text-coffee-500 block mb-1">Tasting Notes (Vibe)</label>
-                  <input name="tastingNotes" defaultValue={editing?.tastingNotes} placeholder="e.g. Velvety | Deep" className="w-full bg-coffee-950 border border-coffee-800 rounded-xl px-4 py-3 text-sm text-coffee-100 focus:border-coffee-500 transition-colors outline-none" />
+                  <label className="text-[10px] uppercase font-bold text-coffee-500 block mb-1">
+                    Tasting Notes (Vibe)
+                  </label>
+                  <input
+                    name="tastingNotes"
+                    defaultValue={editing?.tastingNotes}
+                    placeholder="e.g. Velvety | Deep"
+                    className="w-full bg-coffee-950 border border-coffee-800 rounded-xl px-4 py-3 text-sm text-coffee-100 focus:border-coffee-500 transition-colors outline-none"
+                  />
+                </div>
+
+                {/* ---------- TAG SELECTOR (PASTE BELOW THIS LINE) ---------- */}
+                <div className="col-span-2">
+                  <label className="text-[10px] uppercase font-bold text-coffee-500 block mb-2">
+                    Artwork Tags (Vibe)
+                  </label>
+
+                  <div className="space-y-4">
+                    {Object.entries(TAG_GROUPS).map(([group, groupTags]) => (
+                      <div key={group}>
+                        <p className="text-xs font-bold text-coffee-400 mb-2 tracking-widest uppercase">
+                          {group}
+                        </p>
+
+                        <div className="flex flex-wrap gap-2">
+                          {groupTags.map(tag => {
+                            const active = tags.includes(tag);
+                            return (
+                              <div
+                              key={tag}
+                              onClick={() => toggleTag(tag)}
+                              className={`cursor-pointer select-none px-4 py-1.5 rounded-full text-xs font-semibold border transition-all
+                                ${
+                                  active
+                                    ? 'bg-[#6f4e37] text-white border-[#6f4e37]'   // ☕ BROWN SELECTED
+                                    : 'bg-coffee-950 text-coffee-400 border-coffee-800 hover:border-[#6f4e37]'
+                                }`}
+                            >
+                              {tag.replace('_', ' ')}
+                            </div>
+
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
               

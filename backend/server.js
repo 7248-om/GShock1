@@ -39,7 +39,7 @@ try {
 // SIMPLIFIED CORS (Allow All for Deployment)
 // ==========================================
 app.use(cors({
-  origin: "*", 
+  origin: "*",
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -48,16 +48,32 @@ app.use(cors({
 app.use(express.json());
 app.use(morgan('dev'));
 
-// Routes
+// ==========================================
+// HEALTH CHECK
+// ==========================================
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// ==========================================
+// MAIN ROUTES
+// ==========================================
 app.use('/api', routes);
 
+// ==========================================
+// 🔥 GOOGLE REVIEWS ROUTE (ADDED – CORRECT PATH)
+// ==========================================
+app.use('/api', require('./src/routes/googleReviews.routes'));
+
+// ==========================================
+// ERROR HANDLERS
+// ==========================================
 app.use(notFoundHandler);
 app.use(errorHandler);
 
+// ==========================================
+// SERVER START
+// ==========================================
 const PORT = process.env.PORT || 5001;
 
 async function startServer() {

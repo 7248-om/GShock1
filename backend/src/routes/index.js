@@ -16,8 +16,8 @@ const suggestionRoutes = require('./suggestion.routes');
 const artistRoutes = require('./artist.routes');
 const chatRoutes = require('./chat.routes');
 const menuRoutes = require('./menu.routes'); // <--- ADD THIS IMPORT
+const marketingRoutes = require('./marketing.routes');
 const synesthesiaRoutes = require('./synesthesia.routes');
-
 const router = express.Router();
 
 // Root API endpoint
@@ -45,6 +45,6 @@ router.use('/suggestions', suggestionRoutes);
 router.use('/artists', artistRoutes);
 router.use('/chat', chatRoutes);
 router.use('/menu', menuRoutes); // <--- ADD THIS LINE
+router.use('/marketing', marketingRoutes);
 router.use('/synesthesia', synesthesiaRoutes);
-
 module.exports = router;

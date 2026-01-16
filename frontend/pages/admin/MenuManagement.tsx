@@ -4,6 +4,12 @@ import axios from 'axios';
 import { Plus, X, Trash2, MoreVertical, Search, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { MenuItem, Category } from '../types';
 
+const MENU_TAG_GROUPS = {
+  "Bold & Intense": ["bold", "strong", "robusta", "intense", "dark", "spicy"],
+  "Smooth & Contemplative": ["smooth", "mild", "creamy", "sweet", "milk", "comfort"],
+  "Earthy & Grounded": ["earthy", "nutty", "herbal", "rustic", "traditional"],
+};
+
 const MenuManagement: React.FC = () => {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -14,6 +20,7 @@ const MenuManagement: React.FC = () => {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
+  const [tags, setTags] = useState<string[]>([]);
   
   const { token } = useAuth();
   const API_BASE_URL = import.meta.env.VITE_BACKEND_API_URL || '/api';
@@ -37,14 +44,24 @@ const MenuManagement: React.FC = () => {
   useEffect(() => {
     if (editingItem) {
       setUploadedUrl(editingItem.imageUrl || null);
+      setTags(editingItem.tags || []); 
     } else {
       setUploadedUrl(null);
+      setTags([]);                       
     }
   }, [editingItem]);
 
   const filteredItems = items.filter(item => 
     item.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  const toggleMenuTag = (tag: string) => {
+    setTags(prev =>
+      prev.includes(tag)
+        ? prev.filter(t => t !== tag)
+        : [...prev, tag]
+    );
+  };
+
 
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -62,7 +79,8 @@ const MenuManagement: React.FC = () => {
         category: formData.get('category') as string,
         imageUrl: imageUrlVal,
         stockStatus: formData.get('status') as string,
-        isAvailable: formData.get('status') === 'In Stock'
+        isAvailable: formData.get('status') === 'In Stock',
+        tags,
       };
 
       // Validate required fields
@@ -251,6 +269,44 @@ const MenuManagement: React.FC = () => {
                   <label className="block text-[10px] uppercase font-bold text-coffee-500 mb-2">Description</label>
                   <textarea name="description" rows={3} defaultValue={editingItem?.description} className="w-full bg-coffee-950 border border-coffee-800 rounded-xl px-4 py-3 text-sm text-coffee-100 focus:border-coffee-500 outline-none resize-none" />
                 </div>
+                {/* ===== MENU TAG SELECTOR ===== */}
+                <div className="col-span-2">
+                  <label className="block text-[10px] uppercase font-bold text-coffee-500 mb-2">
+                    Flavor Profile Tags
+                  </label>
+
+                  <div className="space-y-4">
+                    {Object.entries(MENU_TAG_GROUPS).map(([group, groupTags]) => (
+                      <div key={group}>
+                        <p className="text-xs font-bold text-coffee-400 mb-2 tracking-widest uppercase">
+                          {group}
+                        </p>
+
+                        <div className="flex flex-wrap gap-2">
+                          {groupTags.map(tag => {
+                            const active = tags.includes(tag);
+
+                            return (
+                              <div
+                                key={tag}
+                                onClick={() => toggleMenuTag(tag)}
+                                className={`cursor-pointer select-none px-4 py-1.5 rounded-full text-xs font-semibold border transition-all
+                                  ${
+                                    active
+                                      ? 'bg-[#6f4e37] text-white border-[#6f4e37]'
+                                      : 'bg-coffee-950 text-coffee-400 border-coffee-800 hover:border-[#6f4e37]'
+                                  }`}
+                              >
+                                {tag}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
 
                 <div className="col-span-2">
                   <label className="block text-[10px] uppercase font-bold text-coffee-500 mb-2">Image</label>
