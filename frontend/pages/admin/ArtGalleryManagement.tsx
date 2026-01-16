@@ -165,7 +165,7 @@ const ArtGalleryManagement: React.FC<Props> = ({ artworks, onAdd, onUpdate, onDe
                   <p className="text-[10px] uppercase font-bold text-coffee-500 tracking-widest">Medium</p>
                   <p className="text-xs text-coffee-200">{art.medium}</p>
                 </div>
-                <p className="text-lg font-serif font-bold text-coffee-100">${art.price.toLocaleString()}</p>
+                <p className="text-lg font-serif font-bold text-coffee-100">₹{art.price.toLocaleString()}</p>
               </div>
             </div>
           </div>
@@ -213,7 +213,7 @@ const ArtGalleryManagement: React.FC<Props> = ({ artworks, onAdd, onUpdate, onDe
                   <input name="dimensions" defaultValue={editing?.dimensions} className="w-full bg-coffee-950 border border-coffee-800 rounded-xl px-4 py-3 text-sm text-coffee-100 focus:border-coffee-500 transition-colors outline-none" />
                 </div>
                 <div className="col-span-1">
-                  <label className="text-[10px] uppercase font-bold text-coffee-500 block mb-1">Price ($)</label>
+                  <label className="text-[10px] uppercase font-bold text-coffee-500 block mb-1">Price (₹)</label>
                   <input name="price" type="number" defaultValue={editing?.price} required className="w-full bg-coffee-950 border border-coffee-800 rounded-xl px-4 py-3 text-sm text-coffee-100 focus:border-coffee-500 transition-colors outline-none" />
                 </div>
                 <div className="col-span-1">

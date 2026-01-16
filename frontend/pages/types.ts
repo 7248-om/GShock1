@@ -74,6 +74,7 @@ export interface MenuItem {
   tastingNotes?: string;
   tags: CoffeeTag[] | string[];
   isAvailable?: boolean;
+  tags?: string[];
 }
 
 export interface Artwork {
@@ -217,6 +218,7 @@ export interface MenuItem {
   category: string;
   imageUrl: string;
   stockStatus: string;
+  tags?: string[];
 }
 
 export interface Order {
