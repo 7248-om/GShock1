@@ -10,7 +10,7 @@ export const sendChatMessage = async (message, token = null, history = []) => {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${BASE_URL}/api/chat`, {
+  const response = await fetch(`${BASE_URL}/chat`, {
     method: 'POST',
     headers: headers,
     // Sending message AND history
