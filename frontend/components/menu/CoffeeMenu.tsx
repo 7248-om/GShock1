@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react'; // ✅ useEffect added
 import { COFFEE_MENU } from '../../constants';
-import { MenuCategory, CoffeeItem } from '../../types';
+import { MenuCategory, CoffeeItem, CoffeeTag } from '../../types';
 import { CoffeeCard } from './CoffeeCard';
 import SuggestionSection from '../SuggestionSection';
 
@@ -24,6 +24,10 @@ interface CoffeeMenuProps {
 export const CoffeeMenu: React.FC<CoffeeMenuProps> = ({ items, onAddToCart }) => {
   const [activeCategory, setActiveCategory] = useState<MenuCategory | 'All'>('All');
 
+  // ✅ ADD: Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 9;
+
   const menuItems: CoffeeItem[] = useMemo(() => {
     if (items && items.length > 0) {
       return items.map((p) => ({
@@ -32,8 +36,10 @@ export const CoffeeMenu: React.FC<CoffeeMenuProps> = ({ items, onAddToCart }) =>
         description: p.description,
         price: `₹${p.price}`,
         imageUrl: p.imageUrl,
-        tags: p.tags || [],
+        tags: (p.tags || []) as CoffeeTag[],
         category: p.category as MenuCategory,
+        notes: p.description || '',
+        roastLevel: p.stockStatus || 'Available',
       }));
     }
     return COFFEE_MENU;
@@ -45,6 +51,19 @@ export const CoffeeMenu: React.FC<CoffeeMenuProps> = ({ items, onAddToCart }) =>
     if (activeCategory === 'All') return menuItems;
     return menuItems.filter(item => item.category === activeCategory);
   }, [activeCategory, menuItems]);
+
+  // ✅ ADD: Reset page when category changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeCategory]);
+
+  // ✅ ADD: Pagination calculations
+  const totalPages = Math.ceil(filteredMenu.length / ITEMS_PER_PAGE);
+
+  const paginatedMenu = filteredMenu.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
   return (
     <div className="container mx-auto px-3 sm:px-6 md:px-8 max-w-7xl">
@@ -97,7 +116,7 @@ export const CoffeeMenu: React.FC<CoffeeMenuProps> = ({ items, onAddToCart }) =>
 
       {/* Product Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 md:gap-x-12 md:gap-y-16 lg:gap-y-20 py-12 sm:py-16 md:py-20">
-        {filteredMenu.map((item) => (
+        {paginatedMenu.map((item) => ( // ✅ changed from filteredMenu to paginatedMenu
           <div key={item.id} className="reveal-up active">
             <CoffeeCard
               item={item}
@@ -106,6 +125,30 @@ export const CoffeeMenu: React.FC<CoffeeMenuProps> = ({ items, onAddToCart }) =>
           </div>
         ))}
       </div>
+
+      {/* ✅ ADD: Pagination UI */}
+      {totalPages > 1 && (
+        <div className="flex justify-center gap-2 mt-6">
+          {Array.from({ length: totalPages }).map((_, i) => {
+            const page = i + 1;
+            const active = page === currentPage;
+
+            return (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`px-4 py-2 text-xs font-bold border transition-all ${
+                  active
+                    ? 'bg-[#3E2723] text-white border-[#3E2723]'
+                    : 'bg-white text-[#3E2723] border-gray-200 hover:border-[#3E2723]'
+                }`}
+              >
+                {page}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Empty State */}
       {filteredMenu.length === 0 && (
