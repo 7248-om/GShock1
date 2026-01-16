@@ -1,12 +1,11 @@
 const admin = require('firebase-admin');
 const jwt = require('jsonwebtoken');
-const nodemailer = require('nodemailer'); // <--- NEW IMPORT
+const axios = require('axios'); // <--- CHANGED: Use Axios instead of Nodemailer
 const User = require('../models/user.model');
 
 // --- FIREBASE INITIALIZATION (Unchanged) ---
 if (!admin.apps.length) {
   let serviceAccountConfig = null;
-
   if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
     try {
       serviceAccountConfig = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
@@ -32,20 +31,10 @@ if (!admin.apps.length) {
   }
 }
 
-// --- EMAIL TRANSPORTER CONFIGURATION ---
-const transporter = nodemailer.createTransport({
-  service: 'gmail', 
-  auth: {
-    user: process.env.EMAIL_USER, // Add to .env
-    pass: process.env.EMAIL_PASS  // Add to .env (App Password)
-  }
-});
-
 // Helper: Generate 6-digit OTP
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
 
-
-// --- 1. EXISTING LOGIN FUNCTION ---
+// --- 1. EXISTING LOGIN FUNCTION (Unchanged) ---
 async function loginWithFirebase(req, res) {
   const { idToken } = req.body || {};
 
@@ -107,7 +96,7 @@ async function loginWithFirebase(req, res) {
   }
 }
 
-// --- 2. SEND OTP (FORGOT PASSWORD) ---
+// --- 2. SEND OTP (UPDATED FOR EMAILJS) ---
 async function forgotPasswordOtp(req, res) {
   try {
     const { email } = req.body;
@@ -121,32 +110,41 @@ async function forgotPasswordOtp(req, res) {
     const otp = generateOTP();
     const otpExpires = Date.now() + 5 * 60 * 1000;
 
-    // Save to DB (Ensure your User Schema has these fields)
+    // Save to DB
     user.resetPasswordOtp = otp;
     user.resetPasswordExpires = otpExpires;
     await user.save();
 
-    // Send Email
-    await transporter.sendMail({
-      from: '"Rabuste Cafe" <no-reply@rabustecafe.com>',
-      to: email,
-      subject: 'Password Reset OTP',
-      html: `
-        <h3>Password Reset Request</h3>
-        <p>Your OTP code is: <b style="font-size: 24px;">${otp}</b></p>
-        <p>This code expires in 5 minutes.</p>
-      `
-    });
+    // --- EMAILJS CONFIGURATION ---
+    const serviceId = process.env.EMAILJS_SERVICE_ID;
+    const templateId = process.env.EMAILJS_TEMPLATE_ID;
+    const publicKey = process.env.EMAILJS_PUBLIC_KEY;
+    const privateKey = process.env.EMAILJS_PRIVATE_KEY; // Access Token
 
-    res.json({ success: true, message: "OTP sent successfully" });
+    const emailData = {
+      service_id: serviceId,
+      template_id: templateId,
+      user_id: publicKey,
+      accessToken: privateKey,
+      template_params: {
+        to_email: email,      // Match this variable in your EmailJS Template
+        to_name: user.name || "User",
+        otp: otp              // Match this variable in your EmailJS Template
+      }
+    };
+
+    // Send via EmailJS REST API
+    await axios.post('https://api.emailjs.com/api/v1.0/email/send', emailData);
+
+    res.json({ success: true, message: "OTP sent successfully via EmailJS" });
 
   } catch (error) {
-    console.error("❌ Forgot Password Error:", error);
+    console.error("❌ Forgot Password Error:", error.response?.data || error.message);
     res.status(500).json({ success: false, message: "Failed to send OTP" });
   }
 }
 
-// --- 3. VERIFY OTP ---
+// --- 3. VERIFY OTP (Unchanged) ---
 async function verifyOtp(req, res) {
   try {
     const { email, otp } = req.body;
@@ -169,7 +167,7 @@ async function verifyOtp(req, res) {
   }
 }
 
-// --- 4. RESET PASSWORD ---
+// --- 4. RESET PASSWORD (Unchanged) ---
 async function resetPassword(req, res) {
   try {
     const { email, otp, newPassword } = req.body;
