@@ -12,7 +12,7 @@ import {
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
-
+import { useNavigate } from 'react-router-dom';
 // ... (Keep existing interfaces MetricCardProps, DashboardStats, ChartData)
 
 const MetricCard: React.FC<MetricCardProps> = ({ title, value, icon, trend, isLoading }) => (
@@ -37,6 +37,25 @@ const MetricCard: React.FC<MetricCardProps> = ({ title, value, icon, trend, isLo
 );
 
 const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
+
+const quickActions = [
+  {
+    label: 'Add Menu Item',
+    icon: <Plus size={18} />,
+    path: '/admin/menu',
+  },
+  {
+    label: 'Post Workshop',
+    icon: <Calendar size={18} />,
+    path: '/admin/workshops',
+  },
+  {
+    label: 'Franchise Requests',
+    icon: <Palette size={18} />,
+    path: '/admin/franchise',
+  },
+];
   const { token } = useAuth();
   const API_BASE_URL = import.meta.env.VITE_BACKEND_API_URL || '/api';
   
@@ -219,17 +238,27 @@ const Dashboard: React.FC = () => {
           <div className="bg-coffee-900 border border-coffee-800 p-8 rounded-3xl h-full">
             <h3 className="text-lg font-serif font-bold mb-6 text-coffee-100">Quick Actions</h3>
             <div className="space-y-3">
-              {['Add Menu Item', 'Post Workshop', 'Franchise Requests'].map((label, i) => (
-                <button key={i} className="w-full flex items-center justify-between p-4 bg-coffee-950 border border-coffee-800 rounded-xl hover:border-coffee-400 transition-all group">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-coffee-900 rounded-lg group-hover:bg-coffee-100 group-hover:text-coffee-950 transition-colors text-coffee-400">
-                      {[<Plus size={18} />, <Calendar size={18} />, <Palette size={18} />][i]}
-                    </div>
-                    <span className="text-sm font-medium text-coffee-100 group-hover:text-coffee-100">{label}</span>
-                  </div>
-                  <ArrowRight size={16} className="text-coffee-600 group-hover:text-coffee-100 group-hover:translate-x-1 transition-all" />
-                </button>
-              ))}
+             {quickActions.map((action, i) => (
+  <button
+    key={i}
+    onClick={() => navigate(action.path)}
+    className="w-full flex items-center justify-between p-4 bg-coffee-950 border border-coffee-800 rounded-xl hover:border-coffee-400 transition-all group"
+  >
+    <div className="flex items-center gap-3">
+      <div className="p-2 bg-coffee-900 rounded-lg group-hover:bg-coffee-100 group-hover:text-coffee-950 transition-colors text-coffee-400">
+        {action.icon}
+      </div>
+      <span className="text-sm font-medium text-coffee-100">
+        {action.label}
+      </span>
+    </div>
+    <ArrowRight
+      size={16}
+      className="text-coffee-600 group-hover:text-coffee-100 group-hover:translate-x-1 transition-all"
+    />
+  </button>
+))}
+
             </div>
 
             <div className="mt-12 p-6 bg-gradient-to-br from-coffee-800 to-coffee-950 rounded-2xl border border-coffee-700">

@@ -174,7 +174,7 @@ const Header: React.FC = () => {
                     {/* ADDED: My Orders Button */}
                     <button
                       onClick={() => {
-                        closeAndNavigate('/orders');
+                        closeAndNavigate('/my-orders');
                         setIsProfileMenuOpen(false);
                       }}
                       className="w-full text-left px-4 py-2 text-sm transition-colors flex items-center gap-3 hover:bg-opacity-80"
