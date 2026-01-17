@@ -1,8 +1,9 @@
 import React from 'react';
 import { Facebook, Instagram, Twitter, Youtube } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Footer: React.FC = () => {
+  const navigate = useNavigate()
   return (
     <footer className="bg-[#3E2723] text-cream py-8 sm:py-12 md:py-16 border-t border-white/10">
       <div className="container mx-auto px-4 sm:px-6 md:px-8">
@@ -35,12 +36,47 @@ const Footer: React.FC = () => {
               Explore
             </h3>
             <ul className="space-y-2 text-white/60 text-sm sm:text-base">
-              <li><a href="#" className="hover:text-gold">Coffee</a></li>
-              <li><a href="#" className="hover:text-gold">Why Robusta</a></li>
-              <li><a href="#" className="hover:text-gold">Art Gallery</a></li>
-              <li><a href="#" className="hover:text-gold">Workshops</a></li>
-              <li><a href="#" className="hover:text-gold">Franchise</a></li>
-            </ul>
+             <li>
+        <button
+          className="hover:text-gold"
+          onClick={() => navigate('/menu')}
+        >
+          Coffee
+        </button>
+      </li>
+      <li>
+        <button
+          className="hover:text-gold"
+          onClick={() => navigate('/whyrob')}
+        >
+          Why Robusta
+        </button>
+      </li>
+      <li>
+        <button
+          className="hover:text-gold"
+          onClick={() => navigate('/art')}
+        >
+          Art Gallery
+        </button>
+      </li>
+      <li>
+        <button
+          className="hover:text-gold"
+          onClick={() => navigate('/workshop')}
+        >
+          Workshops
+        </button>
+      </li>
+      <li>
+        <button
+          className="hover:text-gold"
+          onClick={() => navigate('/franchise')}
+        >
+          Franchise
+        </button>
+      </li>
+             </ul>
           </div>
 
           {/* CONTACT */}
@@ -49,20 +85,26 @@ const Footer: React.FC = () => {
               Contact
             </h3>
             <ul className="space-y-2 text-white/60 text-sm sm:text-base">
-              <li>
-                <a href="#" className="hover:text-gold break-all">
-                  hello@rabuste.coffee
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-gold">
-                  Franchise Enquiries
-                </a>
-              </li>
-              <li className="pt-2 text-xs sm:text-sm">
-                Open Daily<br />
-                Grab-and-Go Experience
-              </li>
+               {/* <li>
+        <button
+          className="hover:text-gold break-all"
+          onClick={() => navigate('/contact-email')}
+        >
+          hello@rabuste.coffee
+        </button>
+      </li> */}
+      <li>
+        <button
+          className="hover:text-gold"
+          onClick={() => navigate('/franchise')}
+        >
+          Franchise Enquiries
+        </button>
+      </li>
+      <li className="pt-2 text-xs sm:text-sm">
+        Open Daily<br />
+        Grab-and-Go Experience
+      </li>
             </ul>
           </div>
         </div>
@@ -77,33 +119,7 @@ const Footer: React.FC = () => {
           </span>
         </div>
 
-        {/* BOTTOM LINKS */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 text-xs sm:text-sm mb-10 md:mb-12">
-          <div>
-            <h4 className="font-bold uppercase mb-2 text-xs sm:text-sm">About</h4>
-            <ul className="space-y-1 text-white/50">
-              <li><Link to="/ourstory" className="hover:text-gold text-xs sm:text-sm">Our Story </Link></li>
-              <li><a href="#" className="text-xs sm:text-sm">Café Concept</a></li>
-              <li><a href="#" className="text-xs sm:text-sm">Culture & Values</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-bold uppercase mb-2 text-xs sm:text-sm">Experience</h4>
-            <ul className="space-y-1 text-white/50">
-              <li><a href="#" className="text-xs sm:text-sm">Workshops</a></li>
-              <li><a href="#" className="text-xs sm:text-sm">Art at Rabuste</a></li>
-              <li><a href="#" className="text-xs sm:text-sm">Community</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-bold uppercase mb-2 text-xs sm:text-sm">Business</h4>
-            <ul className="space-y-1 text-white/50">
-              <li><a href="#" className="text-xs sm:text-sm">Franchise</a></li>
-              <li><a href="#" className="text-xs sm:text-sm">Partnerships</a></li>
-            </ul>
-          </div>
-        </div>
-
+       
         {/* FOOTER BOTTOM */}
         <div className="flex flex-col gap-4 md:gap-0 md:flex-row justify-between items-start md:items-center pt-6 md:pt-8 border-t border-white/10 text-white/40 text-[10px] sm:text-xs">
           <div className="flex flex-col gap-2 md:flex-row md:gap-4">
