@@ -11,10 +11,11 @@ const OurStory: React.FC = () => {
   }, []);
 
   return (
-    <div className="bg-[#FFFCF2] text-[#3E2723] w-full font-sans selection:bg-[#D99A46] selection:text-white overflow-hidden">
+    // FIX 1: Changed 'overflow-hidden' to 'overflow-x-hidden' to allow vertical scrolling
+    <div className="bg-[#FFFCF2] text-[#3E2723] w-full font-sans selection:bg-[#D99A46] selection:text-white overflow-x-hidden">
       
       {/* --- HERO SECTION: PARALLAX MANIFESTO & MAP --- */}
-      <section className="relative h-screen min-h-[700px] flex items-center justify-center overflow-hidden">
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden py-20 md:py-0">
         {/* Parallax Background Image */}
         <div 
           className="absolute inset-0 z-0 opacity-20 md:opacity-100 md:w-1/2 md:left-1/2"
@@ -28,7 +29,7 @@ const OurStory: React.FC = () => {
           <div className="absolute inset-0 bg-[#FFFCF2] md:bg-gradient-to-r from-[#FFFCF2] via-[#FFFCF2]/80 to-transparent" />
         </div>
 
-        <div className="relative z-10 container mx-auto px-6 md:px-12 grid md:grid-cols-2 gap-12 items-center h-full pt-20">
+        <div className="relative z-10 container mx-auto px-6 md:px-12 grid md:grid-cols-2 gap-12 items-center h-full">
           
           {/* LEFT COLUMN: TEXT */}
           <div className="space-y-8">
@@ -45,7 +46,7 @@ const OurStory: React.FC = () => {
           </div>
 
           {/* RIGHT COLUMN: MAP */}
-          <div className="hidden md:block relative animate-fade-in-up">
+          <div className="relative animate-fade-in-up mt-12 md:mt-0 block">
             {/* Location Label */}
             <div className="absolute -top-6 left-4 bg-[#3E2723] text-[#FFFCF2] px-4 py-2 text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 z-20 shadow-lg">
               <MapPin size={12} />
@@ -53,7 +54,8 @@ const OurStory: React.FC = () => {
             </div>
 
             {/* Map Container */}
-            <div className="relative w-full h-[400px] rounded-tl-[3rem] rounded-br-[3rem] overflow-hidden border-4 border-white shadow-2xl transform rotate-1 hover:rotate-0 transition-transform duration-700 ease-out">
+            {/* FIX 2: Added 'pointer-events-none' so touches pass through the map to scroll the page instead */}
+            <div className="relative w-full h-[300px] md:h-[400px] rounded-tl-[2rem] md:rounded-tl-[3rem] rounded-br-[2rem] md:rounded-br-[3rem] overflow-hidden border-4 border-white shadow-2xl md:transform md:rotate-1 md:hover:rotate-0 transition-transform duration-700 ease-out pointer-events-none">
               <iframe 
                 title="Rabuste Location"
                 width="100%" 
@@ -65,8 +67,8 @@ const OurStory: React.FC = () => {
                 style={{ filter: 'grayscale(20%) contrast(1.1)' }}
               ></iframe>
               
-              {/* Overlay Gradient (Optional aesthetic touch) */}
-              <div className="absolute inset-0 pointer-events-none border-[1px] border-[#3E2723]/10 rounded-tl-[3rem] rounded-br-[3rem]"></div>
+              {/* Overlay Gradient */}
+              <div className="absolute inset-0 border-[1px] border-[#3E2723]/10 rounded-tl-[2rem] md:rounded-tl-[3rem] rounded-br-[2rem] md:rounded-br-[3rem]"></div>
             </div>
 
             {/* Address Caption */}
@@ -79,7 +81,7 @@ const OurStory: React.FC = () => {
         </div>
 
         {/* Scroll Indicator */}
-        <div className="absolute bottom-10 left-6 md:left-12 flex items-center gap-3 animate-bounce text-[#3E2723]/40">
+        <div className="absolute bottom-10 left-6 md:left-12 hidden md:flex items-center gap-3 animate-bounce text-[#3E2723]/40">
            <ArrowDown size={16} />
            <span className="text-[10px] uppercase tracking-widest font-bold">Scroll to discover</span>
         </div>
@@ -106,7 +108,6 @@ const OurStory: React.FC = () => {
 
       {/* --- SECTION 3: DARK MODE (THE PRODUCT) --- */}
       <section className="bg-[#3E2723] text-[#FFFCF2] py-32 px-6 md:px-12 relative overflow-hidden">
-        {/* Decorative Grid Background */}
         <div className="absolute inset-0 opacity-5" style={{ backgroundImage: 'radial-gradient(#D99A46 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
 
         <div className="max-w-7xl mx-auto relative z-10">
@@ -144,7 +145,6 @@ const OurStory: React.FC = () => {
       {/* --- SECTION 4: THE LIVING GALLERY (ART) --- */}
       <section className="py-32 px-6 md:px-12 max-w-[1600px] mx-auto">
         <div className="grid lg:grid-cols-2 gap-20 items-center">
-           {/* Visual Collage */}
            <div className="relative h-[600px] w-full">
               <div className="absolute top-0 left-0 w-3/4 h-3/4 bg-gray-200 overflow-hidden shadow-2xl z-10 border-4 border-white">
                 <img src="https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=800&auto=format&fit=crop" alt="Art 1" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"/>
@@ -152,11 +152,9 @@ const OurStory: React.FC = () => {
               <div className="absolute bottom-0 right-0 w-2/3 h-2/3 bg-gray-300 overflow-hidden shadow-2xl z-20 border-4 border-white">
                 <img src="https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=800&auto=format&fit=crop" alt="Art 2" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"/>
               </div>
-              {/* Decorative Frame */}
               <div className="absolute -inset-4 border-2 border-[#3E2723]/10 z-0"></div>
            </div>
 
-           {/* Content */}
            <div className="space-y-8 pl-0 lg:pl-12">
               <div className="flex items-center gap-4 text-[#3E2723]/60">
                  <Palette size={24} />
@@ -183,8 +181,6 @@ const OurStory: React.FC = () => {
       <section className="bg-[#EFEBE0] py-24 px-6 md:px-12">
          <div className="max-w-6xl mx-auto">
             <div className="grid md:grid-cols-2 gap-16">
-               
-               {/* Values List */}
                <div className="space-y-12">
                   <h2 className="font-oswald text-4xl uppercase mb-8">What We Stand For</h2>
                   <ul className="space-y-8">
@@ -205,7 +201,6 @@ const OurStory: React.FC = () => {
                   </ul>
                </div>
 
-               {/* Workshop Card */}
                <div className="bg-[#FFFCF2] p-8 md:p-12 border border-[#3E2723]/10 relative">
                   <div className="absolute -top-3 -right-3 bg-[#D99A46] text-[#3E2723] p-3 shadow-lg">
                      <Users size={24} />
