@@ -1,5 +1,5 @@
 const express = require('express');
-
+const { brewAIRecommendation } = require('../controllers/brewAI.controller');
 const authRoutes = require('./auth.routes');
 const userRoutes = require('./user.routes');
 const productRoutes = require('./product.routes');
@@ -49,4 +49,5 @@ router.use('/menu', menuRoutes); // <--- ADD THIS LINE
 router.use('/marketing', marketingRoutes);
 router.use('/synesthesia', synesthesiaRoutes);
 router.use('/google-reviews', googleReviewRoutes);
+router.post('/brew-ai', brewAIRecommendation);
 module.exports = router;

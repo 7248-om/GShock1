@@ -1,4 +1,5 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Chatbot from './components/Chatbot'; // <--- Import here
@@ -23,15 +24,32 @@ import Profile from './pages/Profile';
 import Artist from './pages/Artist';
 import OurStory from './pages/OurStory';
 import VisitCafe from "./pages/VisitCafe";
+import IntroLoader from "./IntroLoader";
+import BrewAI from './pages/BrewAI';
 const App = () => {
   const location = useLocation();
   const isAuthPage = location.pathname.startsWith('/login') || location.pathname.startsWith('/admin');
+const [showIntro, setShowIntro] = useState(true);
+
+  useEffect(() => {
+    const seen = sessionStorage.getItem("introPlayed");
+
+    if (seen) {
+      setShowIntro(false);
+    } else {
+      setTimeout(() => {
+        sessionStorage.setItem("introPlayed", "true");
+        setShowIntro(false);
+      }, 2300); // animation duration
+    }
+  }, []);
+  
 
   return (
     <div className="min-h-screen flex flex-col font-sans bg-cream text-[#3E2723] selection:bg-gold selection:text-white">
-      
+      <IntroLoader show={showIntro} />
       {!isAuthPage && <Header />}
-
+  {!showIntro && (
         <main className="flex-grow ">
           <Routes>
             <Route path="/" element={<Home />} />
@@ -53,9 +71,10 @@ const App = () => {
             <Route path="/artist/:id" element={<Artist/>}/>
             <Route path="/ourstory" element={<OurStory/>}/>
             <Route path="/visit-cafe" element={<VisitCafe />} />
+            <Route path="/brew-ai" element={<BrewAI />} />
           </Routes>
         </main>
-
+  )}
       {/* Conditionally hide Footer & Chatbot */}
       {!isAuthPage && (
         <>

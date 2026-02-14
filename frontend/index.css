@@ -15,3 +15,35 @@ body {
   border-color: #EC9706;
   box-shadow: 0 0 0 1px #EC9706;
 }
+
+/* Coffee fill animation (10s) */
+          @keyframes fillCoffee {
+            0% { height: 0%; }
+            100% { height: 100%; }
+          }
+          .animate-fillCoffee { animation: fillCoffee 10s linear forwards; }
+
+          /* Beans drop animation */
+          @keyframes drop {
+            0% { transform: translateY(-50px); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateY(60px); opacity: 0; }
+          }
+          .animate-drop { animation: drop 10s ease-in-out infinite; }
+          .animate-delay-200 { animation-delay: 0.2s; }
+          .animate-delay-400 { animation-delay: 0.4s; }
+
+          /* Steam rising */
+          @keyframes steam {
+            0% { transform: translateY(10px); opacity: 0; }
+            50% { transform: translateY(-10px); opacity: 0.5; }
+            100% { transform: translateY(-30px); opacity: 0; }
+          }
+          .animate-steam { animation: steam 3s ease-in-out infinite; }
+
+          /* Progress bar 10s */
+          @keyframes progress {
+            0% { width: 0%; }
+            100% { width: 100%; }
+          }
+          .animate-progress { animation: progress 10s linear forwards; }
