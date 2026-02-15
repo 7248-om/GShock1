@@ -4,6 +4,8 @@ import { WorkshopType } from './types';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
+import { useConfirm } from '../context/ConfirmContext';
 import axios from 'axios';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -312,6 +314,8 @@ const WorkshopSubmissionForm: React.FC = () => {
 /* ================= WORKSHOP CARD ================= */
 const WorkshopCard: React.FC<{ workshop: WorkshopType; onReservationChange?: () => void }> = ({ workshop, onReservationChange }) => {
   const { user, token } = useAuth();
+  const { addToast } = useToast();
+  const { openConfirm } = useConfirm();
   const [isBooked, setIsBooked] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [vacancyCount, setVacancyCount] = useState((workshop.capacity || 0) - (workshop.attendees?.length || 0));
@@ -335,13 +339,21 @@ const WorkshopCard: React.FC<{ workshop: WorkshopType; onReservationChange?: () 
 
   const handleReserve = async () => {
     if (!user) {
-      alert('Please login to book a seat');
+      addToast('Please login to book a seat', 'warning');
       return;
     }
 
     if (isBooked) {
       // Cancel booking
-      const confirmCancel = window.confirm('Are you sure you want to cancel this booking?');
+      const confirmCancel = await openConfirm({
+        title: 'Cancel Booking',
+        message: 'Are you sure you want to cancel this workshop booking? You will be refunded.',
+        confirmText: 'Cancel Booking',
+        cancelText: 'Keep Booking',
+        type: 'danger',
+        onConfirm: async () => {},
+        onCancel: () => {},
+      });
       if (!confirmCancel) return;
 
       setIsLoading(true);
@@ -352,17 +364,18 @@ const WorkshopCard: React.FC<{ workshop: WorkshopType; onReservationChange?: () 
         );
         setIsBooked(false);
         setVacancyCount(response.data.vacancyCount);
+        addToast('Booking cancelled successfully', 'success');
         onReservationChange?.();
       } catch (err: any) {
         console.error('Failed to cancel booking:', err);
-        alert(err.response?.data?.message || 'Failed to cancel booking');
+        addToast(err.response?.data?.message || 'Failed to cancel booking', 'error');
       } finally {
         setIsLoading(false);
       }
     } else {
       // Reserve seat
       if (vacancyCount <= 0) {
-        alert('This workshop is at full capacity');
+        addToast('This workshop is at full capacity', 'warning');
         return;
       }
 
@@ -375,10 +388,11 @@ const WorkshopCard: React.FC<{ workshop: WorkshopType; onReservationChange?: () 
         );
         setIsBooked(true);
         setVacancyCount(response.data.vacancyCount);
+        addToast('Seat reserved successfully!', 'success');
         onReservationChange?.();
       } catch (err: any) {
         console.error('Failed to book workshop:', err);
-        alert(err.response?.data?.message || 'Failed to book workshop');
+        addToast(err.response?.data?.message || 'Failed to book workshop', 'error');
       } finally {
         setIsLoading(false);
       }

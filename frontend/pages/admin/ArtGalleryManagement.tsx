@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
+import { useConfirm } from '../../context/ConfirmContext';
 import { Search, Plus, MoreVertical, X, Image as ImageIcon, Trash2, Palette } from 'lucide-react';
 import { Artwork, ArtStatus } from '../types';
 // ---- FIXED TAG GROUPS (ADD ONLY) ----
@@ -21,6 +23,7 @@ const ArtGalleryManagement: React.FC<Props> = ({ artworks, onAdd, onUpdate, onDe
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const { token } = useAuth();
+  const { addToast } = useToast();
   const API_BASE_URL = import.meta.env.VITE_BACKEND_API_URL || '/api';
   
   // Image Upload State
@@ -92,11 +95,21 @@ const ArtGalleryManagement: React.FC<Props> = ({ artworks, onAdd, onUpdate, onDe
 
   const handleDelete = async (id: string) => {
     if (!onDelete) return;
-    if (!window.confirm('Are you sure you want to delete this artwork?')) return;
+    const confirmed = await openConfirm({
+      title: 'Delete Artwork',
+      message: 'Are you sure you want to delete this artwork? This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      type: 'danger',
+      onConfirm: async () => {},
+      onCancel: () => {},
+    });
+    if (!confirmed) return;
     try {
       await onDelete(id);
+      addToast('Artwork deleted successfully', 'success');
     } catch (error: any) {
-      alert(error.message || 'Failed to delete artwork');
+      addToast(error.message || 'Failed to delete artwork', 'error');
     }
   };
   // ---- TAG TOGGLE HELPER ----

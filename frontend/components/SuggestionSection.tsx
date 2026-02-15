@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../hooks/useCart';
+import { useToast } from '../context/ToastContext';
 import axios from 'axios';
 import { ShoppingCart, Heart } from 'lucide-react';
 
@@ -26,6 +27,7 @@ const THEME = {
 const SuggestionSection: React.FC = () => {
   const { token, user } = useAuth();
   const { addToCart } = useCart();
+  const { addToast } = useToast();
   const [suggestions, setSuggestions] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -54,7 +56,7 @@ const SuggestionSection: React.FC = () => {
 
   const handleAddToCart = async (product: Product) => {
     if (!token) {
-      alert('Please log in to add items to cart');
+      addToast('Please log in to add items to cart', 'warning');
       return;
     }
 
@@ -70,10 +72,11 @@ const SuggestionSection: React.FC = () => {
       });
 
       setAddedToCart(product._id);
+      addToast('Added to cart successfully!', 'success');
       setTimeout(() => setAddedToCart(null), 2000);
     } catch (err: any) {
       console.error('Failed to add to cart:', err);
-      alert(`Error: ${err.message || 'Failed to add to cart'}`);
+      addToast(`${err.message || 'Failed to add to cart'}`, 'error');
     }
   };
 

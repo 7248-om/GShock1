@@ -46,15 +46,15 @@ const Layout: React.FC<LayoutProps> = ({ children, isStoreOpen, onToggleStore })
       {/* Mobile Overlay */}
       {isSidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm md:hidden z-40"
+          className="fixed inset-0 bg-black/40 backdrop-blur-md md:hidden z-40"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
 
       {/* SIDEBAR (ASIDE)
-        - bg-coffee-900: Explicitly set background color (visible on mobile slide-out and desktop).
+        - bg-coffee-800: Lighter background for better visibility on mobile.
       */}
-      <aside className={`fixed md:relative w-64 bg-coffee-900 border-r border-coffee-700 flex flex-col shrink-0 h-screen md:h-auto z-50 transition-transform duration-300 transform shadow-2xl md:shadow-none ${
+      <aside className={`fixed md:relative w-64 bg-coffee-800 border-r border-coffee-700 flex flex-col shrink-0 h-screen md:h-auto z-50 transition-transform duration-300 transform shadow-2xl md:shadow-none ${
         isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
       }`}>
         <div className="p-6 sm:p-8 border-b border-coffee-700">
@@ -62,37 +62,37 @@ const Layout: React.FC<LayoutProps> = ({ children, isStoreOpen, onToggleStore })
         </div>
 
         <nav className="flex-1 px-3 sm:px-4 py-2 space-y-1 overflow-y-auto custom-scrollbar">
-          <NavLink to="/admin" end onClick={() => setIsSidebarOpen(false)} className={({ isActive }) => `flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${isActive ? 'bg-coffee-100 text-coffee-950 shadow-lg shadow-coffee-900/50' : 'text-coffee-300 hover:text-coffee-100 hover:bg-coffee-800'}`}>
+          <NavLink to="/admin" end onClick={() => setIsSidebarOpen(false)} className={({ isActive }) => `flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${isActive ? 'bg-coffee-100 text-coffee-950 shadow-lg shadow-coffee-900/50' : 'text-coffee-100 hover:text-coffee-100 hover:bg-coffee-700'}`}>
             <LayoutDashboard size={18} /> <span className="inline">Dashboard</span>
           </NavLink>
-          <NavLink to="/admin/menu" onClick={() => setIsSidebarOpen(false)} className={({ isActive }) => `flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${isActive ? 'bg-coffee-100 text-coffee-950 shadow-lg shadow-coffee-900/50' : 'text-coffee-300 hover:text-coffee-100 hover:bg-coffee-800'}`}>
+          <NavLink to="/admin/menu" onClick={() => setIsSidebarOpen(false)} className={({ isActive }) => `flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${isActive ? 'bg-coffee-100 text-coffee-950 shadow-lg shadow-coffee-900/50' : 'text-coffee-100 hover:text-coffee-100 hover:bg-coffee-700'}`}>
             <Coffee size={18} /> <span className="inline">Rabuste Menu</span>
           </NavLink>
-          <NavLink to="/admin/payment-orders" onClick={() => setIsSidebarOpen(false)} className={({ isActive }) => `flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${isActive ? 'bg-coffee-100 text-coffee-950 shadow-lg shadow-coffee-900/50' : 'text-coffee-300 hover:text-coffee-100 hover:bg-coffee-800'}`}>
+          <NavLink to="/admin/payment-orders" onClick={() => setIsSidebarOpen(false)} className={({ isActive }) => `flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${isActive ? 'bg-coffee-100 text-coffee-950 shadow-lg shadow-coffee-900/50' : 'text-coffee-100 hover:text-coffee-100 hover:bg-coffee-700'}`}>
             <ShoppingBag size={18} /> <span className="inline">Payments</span>
           </NavLink>
-          <NavLink to="/admin/gallery" onClick={() => setIsSidebarOpen(false)} className={({ isActive }) => `flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${isActive ? 'bg-coffee-100 text-coffee-950 shadow-lg shadow-coffee-900/50' : 'text-coffee-300 hover:text-coffee-100 hover:bg-coffee-800'}`}>
+          <NavLink to="/admin/gallery" onClick={() => setIsSidebarOpen(false)} className={({ isActive }) => `flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${isActive ? 'bg-coffee-100 text-coffee-950 shadow-lg shadow-coffee-900/50' : 'text-coffee-100 hover:text-coffee-100 hover:bg-coffee-700'}`}>
             <Palette size={18} /> <span className="inline">Art Gallery</span>
           </NavLink>
-          <NavLink to="/admin/artists" onClick={() => setIsSidebarOpen(false)} className={({ isActive }) => `flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${isActive ? 'bg-coffee-100 text-coffee-950 shadow-lg shadow-coffee-900/50' : 'text-coffee-300 hover:text-coffee-100 hover:bg-coffee-800'}`}>
+          <NavLink to="/admin/artists" onClick={() => setIsSidebarOpen(false)} className={({ isActive }) => `flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${isActive ? 'bg-coffee-100 text-coffee-950 shadow-lg shadow-coffee-900/50' : 'text-coffee-100 hover:text-coffee-100 hover:bg-coffee-700'}`}>
             <UserCheck size={18} /> <span className="inline">Artists</span>
           </NavLink>
-          <NavLink to="/admin/workshops" onClick={() => setIsSidebarOpen(false)} className={({ isActive }) => `flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${isActive ? 'bg-coffee-100 text-coffee-950 shadow-lg shadow-coffee-900/50' : 'text-coffee-300 hover:text-coffee-100 hover:bg-coffee-800'}`}>
+          <NavLink to="/admin/workshops" onClick={() => setIsSidebarOpen(false)} className={({ isActive }) => `flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${isActive ? 'bg-coffee-100 text-coffee-950 shadow-lg shadow-coffee-900/50' : 'text-coffee-100 hover:text-coffee-100 hover:bg-coffee-700'}`}>
             <GraduationCap size={18} /> <span className="inline">Workshops</span>
           </NavLink>
-          <NavLink to="/admin/franchise" onClick={() => setIsSidebarOpen(false)} className={({ isActive }) => `flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${isActive ? 'bg-coffee-100 text-coffee-950 shadow-lg shadow-coffee-900/50' : 'text-coffee-300 hover:text-coffee-100 hover:bg-coffee-800'}`}>
+          <NavLink to="/admin/franchise" onClick={() => setIsSidebarOpen(false)} className={({ isActive }) => `flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${isActive ? 'bg-coffee-100 text-coffee-950 shadow-lg shadow-coffee-900/50' : 'text-coffee-100 hover:text-coffee-100 hover:bg-coffee-700'}`}>
             <Briefcase size={18} /> <span className="inline">Franchise</span>
           </NavLink>
-          <NavLink to="/admin/marketing" onClick={() => setIsSidebarOpen(false)} className={({ isActive }) => `flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${isActive ? 'bg-coffee-100 text-coffee-950 shadow-lg shadow-coffee-900/50' : 'text-coffee-300 hover:text-coffee-100 hover:bg-coffee-800'}`}>
+          <NavLink to="/admin/marketing" onClick={() => setIsSidebarOpen(false)} className={({ isActive }) => `flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${isActive ? 'bg-coffee-100 text-coffee-950 shadow-lg shadow-coffee-900/50' : 'text-coffee-100 hover:text-coffee-100 hover:bg-coffee-700'}`}>
             <Megaphone size={18} /> <span className="inline">Marketing</span>
           </NavLink>
-          <NavLink to="/admin/reels" onClick={() => setIsSidebarOpen(false)} className={({ isActive }) => `flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${isActive ? 'bg-coffee-100 text-coffee-950 shadow-lg shadow-coffee-900/50' : 'text-coffee-300 hover:text-coffee-100 hover:bg-coffee-800'}`}>
+          <NavLink to="/admin/reels" onClick={() => setIsSidebarOpen(false)} className={({ isActive }) => `flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${isActive ? 'bg-coffee-100 text-coffee-950 shadow-lg shadow-coffee-900/50' : 'text-coffee-100 hover:text-coffee-100 hover:bg-coffee-700'}`}>
             <Film size={18} /> <span className="inline">Reels</span>
           </NavLink>
-          <NavLink to="/admin/suggestions" onClick={() => setIsSidebarOpen(false)} className={({ isActive }) => `flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${isActive ? 'bg-coffee-100 text-coffee-950 shadow-lg shadow-coffee-900/50' : 'text-coffee-300 hover:text-coffee-100 hover:bg-coffee-800'}`}>
+          <NavLink to="/admin/suggestions" onClick={() => setIsSidebarOpen(false)} className={({ isActive }) => `flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${isActive ? 'bg-coffee-100 text-coffee-950 shadow-lg shadow-coffee-900/50' : 'text-coffee-100 hover:text-coffee-100 hover:bg-coffee-700'}`}>
             <Lightbulb size={18} /> <span className="inline">Suggestions</span>
           </NavLink>
-          <NavLink to="/admin/users" onClick={() => setIsSidebarOpen(false)} className={({ isActive }) => `flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${isActive ? 'bg-coffee-100 text-coffee-950 shadow-lg shadow-coffee-900/50' : 'text-coffee-300 hover:text-coffee-100 hover:bg-coffee-800'}`}>
+          <NavLink to="/admin/users" onClick={() => setIsSidebarOpen(false)} className={({ isActive }) => `flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${isActive ? 'bg-coffee-100 text-coffee-950 shadow-lg shadow-coffee-900/50' : 'text-coffee-100 hover:text-coffee-100 hover:bg-coffee-700'}`}>
             <Users size={18} /> <span className="inline">Users</span>
           </NavLink>
         </nav>
@@ -122,7 +122,7 @@ const Layout: React.FC<LayoutProps> = ({ children, isStoreOpen, onToggleStore })
 
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto relative bg-coffee-950 w-full md:w-auto">
-        <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto">
+        <div className="p-3 sm:p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
           {children}
         </div>
       </main>

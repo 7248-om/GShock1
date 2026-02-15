@@ -1,24 +1,26 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useToast } from '../context/ToastContext';
 
 const MOODS = ['Focused', 'Energetic', 'Sleepy', 'Fresh', 'Light', 'Relaxed', 'Happy', 'Treat', 'Comfort', 'Stressed', 'Snack', 'Meal'];
 const TASTES = ['Bold', 'Strong', 'Bitter', 'Refreshing', 'Citrus', 'Fruity', 'Creamy', 'Sweet', 'Nutty', 'Caramel', 'Chocolatey', 'Dessert'];
 const TIMES = ['Morning', 'Afternoon', 'Evening', 'Night', 'Any'];
 
 const BrewAI = () => {
+  const { addToast } = useToast();
   const [sel, setSel] = useState({ mood: '', taste: '', timeOfDay: '' });
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
   const handleBrew = async () => {
     
-    if (!sel.mood || !sel.taste || !sel.timeOfDay) return alert("Please select all options!");
+    if (!sel.mood || !sel.taste || !sel.timeOfDay) return addToast("Please select all options!", 'warning');
     setLoading(true);
     try {
       const API_BASE = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:5001';
       const res = await axios.post(`${API_BASE}/api/brew-ai`, sel);
       setResult(res.data);
-    } catch (err) { alert("The Coffee Oracle is currently offline. Try again soon!"); }
+    } catch (err) { addToast("The Coffee Oracle is currently offline. Try again soon!", 'error'); }
     setLoading(false);
   };
 

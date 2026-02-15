@@ -3,12 +3,14 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Minus, Plus, ChevronRight, ChevronLeft, Loader2 } from 'lucide-react';
 import axios from 'axios';
 import { useCart } from '../hooks/useCart';
+import { useToast } from '../context/ToastContext';
 import { Artwork } from '../components/art/types';
 
 const ArtProduct: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { addToast } = useToast();
   
   const [artwork, setArtwork] = useState<Artwork | null>(null);
   const [loading, setLoading] = useState(true);
@@ -91,7 +93,7 @@ const ArtProduct: React.FC = () => {
       category: 'Art' as any
     });
     
-    alert("Added to cart");
+    addToast("Added to cart successfully!", 'success');
   };
 
   if (loading) return <div className="min-h-screen bg-black flex items-center justify-center text-white"><Loader2 className="animate-spin" /></div>;

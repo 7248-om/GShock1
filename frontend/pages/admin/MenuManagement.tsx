@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 import axios from 'axios';
 import { Plus, X, Trash2, MoreVertical, Search, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { MenuItem, Category } from '../types';
@@ -23,6 +24,7 @@ const MenuManagement: React.FC = () => {
   const [tags, setTags] = useState<string[]>([]);
   
   const { token } = useAuth();
+  const { addToast } = useToast();
   const API_BASE_URL = import.meta.env.VITE_BACKEND_API_URL || '/api';
 
   const fetchMenu = async () => {
@@ -119,8 +121,9 @@ const MenuManagement: React.FC = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchMenu();
+      addToast('Item deleted successfully', 'success');
     } catch (error) {
-      alert('Failed to delete item');
+      addToast('Failed to delete item', 'error');
     }
   };
 
@@ -135,38 +138,39 @@ const MenuManagement: React.FC = () => {
          headers: { Authorization: `Bearer ${token}` }
       });
       setUploadedUrl(res.data.url);
+      addToast('Image uploaded successfully', 'success');
     } catch (err) {
-      alert('Upload failed');
+      addToast('Upload failed', 'error');
     } finally {
       setUploading(false);
     }
   };
 
-  if (loading) return <div className="p-8 text-center text-coffee-500">Loading menu...</div>;
+  if (loading) return <div className="p-6 sm:p-8 text-center text-coffee-500 text-sm">Loading menu...</div>;
 
   return (
-    <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500 pt-10">
-      <header className="flex justify-between items-center">
-        <div>
-          <h2 className="text-4xl font-serif font-bold tracking-tight text-coffee-100">The Rabuste Collection</h2>
-          <p className="text-coffee-500 mt-1">Curate and manage your high-end inventory.</p>
+    <div className="space-y-6 sm:space-y-8 animate-in slide-in-from-bottom-4 duration-500 pt-4 sm:pt-10">
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="min-w-0">
+          <h2 className="text-2xl sm:text-4xl font-serif font-bold tracking-tight text-coffee-100">The Rabuste Collection</h2>
+          <p className="text-coffee-500 mt-1 text-xs sm:text-base">Curate and manage your high-end inventory.</p>
         </div>
         <button 
           onClick={() => { setEditingItem(null); setIsModalOpen(true); }}
-          className="flex items-center gap-2 px-6 py-3 bg-coffee-100 text-coffee-950 rounded-full text-sm font-bold hover:bg-white transition-colors"
+          className="flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-coffee-100 text-coffee-950 rounded-full text-xs sm:text-sm font-bold hover:bg-white transition-colors whitespace-nowrap"
         >
-          <Plus size={18} />
+          <Plus size={16} />
           <span>New Offering</span>
         </button>
       </header>
 
-      <div className="flex flex-col sm:flex-row gap-4 items-center bg-coffee-900 p-4 rounded-2xl border border-coffee-800">
+      <div className="flex flex-col gap-3 sm:gap-4 items-center bg-coffee-900 p-3 sm:p-4 rounded-2xl border border-coffee-800">
         <div className="relative flex-1 w-full">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-coffee-500" size={18} />
+          <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-coffee-500" size={18} />
           <input 
             type="text"
             placeholder="Search the collection..."
-            className="w-full bg-coffee-950 border border-coffee-800 rounded-xl pl-12 pr-4 py-3 text-sm text-coffee-100 focus:outline-none focus:border-coffee-500 placeholder:text-coffee-600"
+            className="w-full bg-coffee-950 border border-coffee-800 rounded-xl pl-10 sm:pl-12 pr-3 sm:pr-4 py-2 sm:py-3 text-xs sm:text-sm text-coffee-100 focus:outline-none focus:border-coffee-500 placeholder:text-coffee-600"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -174,56 +178,98 @@ const MenuManagement: React.FC = () => {
       </div>
 
       <div className="overflow-hidden bg-coffee-900 border border-coffee-800 rounded-3xl">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="border-b border-coffee-800">
-              <th className="px-6 py-4 text-[10px] uppercase tracking-widest text-coffee-500 font-bold">Image</th>
-              <th className="px-6 py-4 text-[10px] uppercase tracking-widest text-coffee-500 font-bold">Details</th>
-              <th className="px-6 py-4 text-[10px] uppercase tracking-widest text-coffee-500 font-bold">Category</th>
-              <th className="px-6 py-4 text-[10px] uppercase tracking-widest text-coffee-500 font-bold">Price</th>
-              <th className="px-6 py-4"></th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-coffee-800">
-            {filteredItems.map(item => (
-              <tr key={item._id || item.id} className="hover:bg-coffee-800/30 transition-colors group">
-                <td className="px-6 py-4">
-                  <div className="w-12 h-12 rounded-lg overflow-hidden border border-coffee-800 bg-coffee-950">
+        {/* Desktop Table */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b border-coffee-800">
+                <th className="px-4 sm:px-6 py-3 sm:py-4 text-[10px] uppercase tracking-widest text-coffee-500 font-bold">Image</th>
+                <th className="px-4 sm:px-6 py-3 sm:py-4 text-[10px] uppercase tracking-widest text-coffee-500 font-bold">Details</th>
+                <th className="px-4 sm:px-6 py-3 sm:py-4 text-[10px] uppercase tracking-widest text-coffee-500 font-bold">Category</th>
+                <th className="px-4 sm:px-6 py-3 sm:py-4 text-[10px] uppercase tracking-widest text-coffee-500 font-bold">Price</th>
+                <th className="px-4 sm:px-6 py-3 sm:py-4"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-coffee-800">
+              {filteredItems.map(item => (
+                <tr key={item._id || item.id} className="hover:bg-coffee-800/30 transition-colors group">
+                  <td className="px-4 sm:px-6 py-3 sm:py-4">
+                    <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-lg overflow-hidden border border-coffee-800 bg-coffee-950 flex-shrink-0">
+                      <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                    </div>
+                  </td>
+                  <td className="px-4 sm:px-6 py-3 sm:py-4 min-w-0">
+                    <div>
+                      <p className="text-xs sm:text-sm font-bold text-coffee-100 truncate">{item.name}</p>
+                      <p className="text-xs text-coffee-600 truncate">{item.description?.substring(0, 30)}...</p>
+                    </div>
+                  </td>
+                  <td className="px-4 sm:px-6 py-3 sm:py-4">
+                    <span className="text-xs sm:text-sm text-coffee-500 uppercase font-bold">{item.category}</span>
+                  </td>
+                  <td className="px-4 sm:px-6 py-3 sm:py-4">
+                    <span className="text-xs sm:text-sm font-bold text-coffee-100">₹{item.price}</span>
+                  </td>
+                  <td className="px-4 sm:px-6 py-3 sm:py-4 text-right">
+                    <div className="flex gap-1 justify-end">
+                      <button 
+                        onClick={() => setEditingItem(item)}
+                        className="p-1.5 sm:p-2 text-coffee-500 hover:text-coffee-100 rounded-lg hover:bg-coffee-800 transition-colors"
+                      >
+                        Edit
+                      </button>
+                      <button 
+                        onClick={() => {}}
+                        className="p-1.5 sm:p-2 text-red-500 hover:text-red-400 rounded-lg hover:bg-red-900/20 transition-colors"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="md:hidden space-y-3 p-3 sm:p-4">
+          {filteredItems.length === 0 ? (
+            <p className="text-center text-coffee-500 text-sm py-8">No items found</p>
+          ) : (
+            filteredItems.map(item => (
+              <div key={item._id || item.id} className="bg-coffee-800 rounded-lg p-3 space-y-2 border border-coffee-700">
+                <div className="flex gap-3 items-start">
+                  <div className="w-16 h-16 rounded-lg overflow-hidden border border-coffee-700 bg-coffee-950 flex-shrink-0">
                     <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
                   </div>
-                </td>
-                <td className="px-6 py-4">
-                  <div>
-                    <p className="text-sm font-semibold text-coffee-100">{item.name}</p>
-                    <p className="text-xs text-coffee-600 line-clamp-1">{item.description}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-coffee-100 truncate">{item.name}</p>
+                    <p className="text-xs text-coffee-600 line-clamp-2">{item.description}</p>
+                    <div className="flex gap-2 mt-1">
+                      <span className="text-xs text-coffee-500 uppercase font-bold bg-coffee-700 px-2 py-0.5 rounded">{item.category}</span>
+                      <span className="text-xs font-bold text-coffee-200">₹{item.price}</span>
+                    </div>
                   </div>
-                </td>
-                <td className="px-6 py-4 text-xs text-coffee-500 uppercase tracking-wide">
-                  {item.category}
-                </td>
-                <td className="px-6 py-4 font-serif text-coffee-100">
-                  ₹{item.price.toFixed(2)}
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <div className="flex items-center gap-2 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button 
-                      onClick={() => { setEditingItem(item); setIsModalOpen(true); }}
-                      className="p-2 text-coffee-500 hover:text-coffee-100 transition-colors"
-                    >
-                      <MoreVertical size={18} />
-                    </button>
-                    <button 
-                      onClick={() => handleDelete(item._id || item.id || '')}
-                      className="p-2 text-coffee-500 hover:text-red-400 transition-colors"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                </div>
+                <div className="flex gap-2 justify-end border-t border-coffee-700 pt-2">
+                  <button 
+                    onClick={() => setEditingItem(item)}
+                    className="px-3 py-1 text-xs text-coffee-100 bg-coffee-700 hover:bg-coffee-600 rounded transition-colors font-bold"
+                  >
+                    Edit
+                  </button>
+                  <button 
+                    onClick={() => {}}
+                    className="px-3 py-1 text-xs text-red-400 bg-red-900/30 hover:bg-red-900/50 rounded transition-colors font-bold"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
 
       {isModalOpen && (

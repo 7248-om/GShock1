@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Megaphone, HelpCircle, Video, Plus, Trash2, Send, AlertCircle, CheckCircle } from 'lucide-react';
 import axios from 'axios';
+import { useConfirm } from '../../context/ConfirmContext';
+import { useToast } from '../../context/ToastContext';
 import { FAQ } from '../types';
 
 interface Props {
@@ -9,6 +11,8 @@ interface Props {
 }
 
 const MarketingCMS: React.FC<Props> = ({ faqs, onUpdateFaqs }) => {
+  const { openConfirm } = useConfirm();
+  const { addToast } = useToast();
   const [tickerLeft, setTickerLeft] = useState(['Today at Rabuste', 'New Colombia Drop', 'Workshop Sat 10AM']);
   const [tickerRight, setTickerRight] = useState(['Robusta Highlights', 'High Caffeine Yield', 'Art Reveal Friday']);
   const [heroVideo, setHeroVideo] = useState('https://onyx.com/assets/video/hero.mp4');
@@ -33,9 +37,15 @@ const MarketingCMS: React.FC<Props> = ({ faqs, onUpdateFaqs }) => {
       return;
     }
 
-    const confirmSend = window.confirm(
-      `Send broadcast email to all users?\n\nSubject: ${emailSubject}`
-    );
+    const confirmSend = await openConfirm({
+      title: 'Send Broadcast Email',
+      message: `Send broadcast email to all users?\n\nSubject: ${emailSubject}`,
+      confirmText: 'Send',
+      cancelText: 'Cancel',
+      type: 'warning',
+      onConfirm: async () => {},
+      onCancel: () => {},
+    });
 
     if (!confirmSend) {
       console.log('User cancelled broadcast');

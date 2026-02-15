@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
+import { useConfirm } from '../context/ConfirmContext';
 import { ChevronDown, AlertCircle, Clock, CheckCircle, Truck, XCircle, Eye, EyeOff } from 'lucide-react';
 import axios from 'axios';
 
@@ -35,6 +37,7 @@ interface Order {
 const Profile: React.FC = () => {
   const navigate = useNavigate();
   const { user, token, logout } = useAuth();
+  const { addToast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
@@ -83,8 +86,19 @@ const Profile: React.FC = () => {
     navigate('/');
   };
 
+  const { openConfirm } = useConfirm();
+
   const handleCancelOrder = async (orderId: string) => {
-    if (!window.confirm('Are you sure you want to cancel this order?')) return;
+    const confirmed = await openConfirm({
+      title: 'Cancel Order',
+      message: 'Are you sure you want to cancel this order? This action cannot be undone.',
+      confirmText: 'Cancel Order',
+      cancelText: 'Keep Order',
+      type: 'danger',
+      onConfirm: async () => {},
+      onCancel: () => {},
+    });
+    if (!confirmed) return;
 
     try {
       setCancelling(orderId);
@@ -101,9 +115,10 @@ const Profile: React.FC = () => {
       setOrders(orders.map(o =>
         o._id === orderId ? { ...o, orderStatus: 'cancelled' } : o
       ));
+      addToast('Order cancelled successfully', 'success');
     } catch (err) {
       console.error('Failed to cancel order:', err);
-      alert('Failed to cancel order');
+      addToast('Failed to cancel order', 'error');
     } finally {
       setCancelling(null);
     }

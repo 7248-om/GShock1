@@ -12,12 +12,13 @@ import {
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 import { useNavigate } from 'react-router-dom';
 // ... (Keep existing interfaces MetricCardProps, DashboardStats, ChartData)
 
 const MetricCard: React.FC<MetricCardProps> = ({ title, value, icon, trend, isLoading }) => (
-  <div className="bg-coffee-900 border border-coffee-800 p-6 rounded-2xl hover:border-coffee-600 transition-colors group">
-    <div className="flex justify-between items-start mb-4">
+  <div className="bg-coffee-900 border border-coffee-800 p-4 sm:p-6 rounded-2xl hover:border-coffee-600 transition-colors group">
+    <div className="flex justify-between items-start mb-3 sm:mb-4">
       <div className="p-2 bg-coffee-950 rounded-lg border border-coffee-800 text-coffee-400 group-hover:text-coffee-100 transition-colors">
         {icon}
       </div>
@@ -29,15 +30,16 @@ const MetricCard: React.FC<MetricCardProps> = ({ title, value, icon, trend, isLo
     </div>
     <h3 className="text-coffee-500 text-xs uppercase tracking-widest font-bold mb-1">{title}</h3>
     {isLoading ? (
-      <div className="h-9 w-24 bg-coffee-800 rounded animate-pulse" />
+      <div className="h-8 sm:h-9 w-20 sm:w-24 bg-coffee-800 rounded animate-pulse" />
     ) : (
-      <p className="text-3xl font-serif font-bold text-coffee-100">{value}</p>
+      <p className="text-2xl sm:text-3xl font-serif font-bold text-coffee-100 truncate">{value}</p>
     )}
   </div>
 );
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  const { addToast } = useToast();
 
 const quickActions = [
   {
@@ -109,9 +111,10 @@ const quickActions = [
       document.body.appendChild(link);
       link.click();
       link.remove();
+      addToast('Report generated successfully!', 'success');
     } catch (error) {
       console.error('Failed to generate report:', error);
-      alert('Failed to generate report. Please try again.');
+      addToast('Failed to generate report. Please try again.', 'error');
     } finally {
       setGeneratingReport(false);
     }
@@ -125,32 +128,32 @@ const quickActions = [
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      <header className="flex justify-between items-end">
-        <div>
-          <h2 className="text-4xl font-serif font-bold tracking-tight text-coffee-100">Afternoon, Lab Director.</h2>
-          <p className="text-coffee-500 mt-2">Here is your business overview for today, {new Date().toLocaleDateString()}.</p>
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+        <div className="min-w-0">
+          <h2 className="text-2xl sm:text-4xl font-serif font-bold tracking-tight text-coffee-100">Afternoon, Lab Director.</h2>
+          <p className="text-coffee-500 mt-2 text-xs sm:text-base">Here is your business overview for today, {new Date().toLocaleDateString()}.</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-2 sm:gap-3 flex-wrap">
           <button 
             onClick={fetchDashboardData}
             className="p-2 border border-coffee-800 text-coffee-400 rounded-lg hover:bg-coffee-900 transition-colors"
             title="Refresh Data"
           >
-            <RefreshCcw size={20} className={loading ? "animate-spin" : ""} />
+            <RefreshCcw size={18} className={loading ? "animate-spin" : ""} />
           </button>
           
           {/* Updated Button */}
           <button 
             onClick={handleGenerateReport}
             disabled={generatingReport}
-            className="px-4 py-2 flex items-center gap-2 border border-coffee-800 text-coffee-100 rounded-lg text-sm font-medium hover:bg-coffee-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-3 sm:px-4 py-2 flex items-center gap-2 border border-coffee-800 text-coffee-100 rounded-lg text-xs sm:text-sm font-medium hover:bg-coffee-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
           >
             {generatingReport ? (
               <span className="animate-pulse">Generating...</span>
             ) : (
               <>
                 <Download size={16} />
-                Generate Report
+                <span className="hidden sm:inline">Generate Report</span>
               </>
             )}
           </button>
@@ -158,45 +161,45 @@ const quickActions = [
       </header>
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <MetricCard 
           title="Total Revenue" 
           value={`₹${stats.totalRevenue.toLocaleString()}`} 
-          icon={<TrendingUp size={20} />} 
+          icon={<TrendingUp size={18} />} 
           trend="+12.5%"
           isLoading={loading}
         />
         <MetricCard 
           title="Orders Today" 
           value={stats.totalOrdersToday} 
-          icon={<ShoppingBag size={20} />} 
+          icon={<ShoppingBag size={18} />} 
           trend={stats.totalOrdersToday > 0 ? "Active" : "Quiet"}
           isLoading={loading}
         />
         <MetricCard 
           title="Active Workshops" 
           value={stats.activeBookings} 
-          icon={<Calendar size={20} />} 
+          icon={<Calendar size={18} />} 
           isLoading={loading}
         />
         <MetricCard 
           title="Franchise Inquiries" 
           value={stats.artInquiries} 
-          icon={<Palette size={20} />} 
+          icon={<Palette size={18} />} 
           isLoading={loading}
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
         {/* Revenue Chart */}
-        <div className="lg:col-span-2 bg-coffee-900 border border-coffee-800 p-8 rounded-3xl">
-          <div className="flex justify-between items-center mb-8">
-            <h3 className="text-lg font-serif font-bold text-coffee-100">Revenue (Last 7 Days)</h3>
+        <div className="lg:col-span-2 bg-coffee-900 border border-coffee-800 p-4 sm:p-8 rounded-3xl overflow-x-auto">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0 mb-4 sm:mb-8">
+            <h3 className="text-base sm:text-lg font-serif font-bold text-coffee-100">Revenue (Last 7 Days)</h3>
             <select className="bg-coffee-950 border border-coffee-800 text-coffee-400 text-xs p-1 rounded focus:outline-none">
               <option>Last 7 Days</option>
             </select>
           </div>
-          <div className="h-[300px] w-full">
+          <div className="h-[250px] sm:h-[300px] w-full min-w-[350px] sm:min-w-0">
             {loading ? (
               <div className="h-full w-full flex items-center justify-center text-coffee-500">Loading chart...</div>
             ) : (
@@ -235,35 +238,35 @@ const quickActions = [
 
         {/* Quick Actions & Recent */}
         <div className="space-y-4">
-          <div className="bg-coffee-900 border border-coffee-800 p-8 rounded-3xl h-full">
-            <h3 className="text-lg font-serif font-bold mb-6 text-coffee-100">Quick Actions</h3>
-            <div className="space-y-3">
+          <div className="bg-coffee-900 border border-coffee-800 p-4 sm:p-8 rounded-3xl">
+            <h3 className="text-base sm:text-lg font-serif font-bold mb-4 sm:mb-6 text-coffee-100">Quick Actions</h3>
+            <div className="space-y-2 sm:space-y-3">
              {quickActions.map((action, i) => (
   <button
     key={i}
     onClick={() => navigate(action.path)}
-    className="w-full flex items-center justify-between p-4 bg-coffee-950 border border-coffee-800 rounded-xl hover:border-coffee-400 transition-all group"
+    className="w-full flex items-center justify-between p-3 sm:p-4 bg-coffee-950 border border-coffee-800 rounded-xl hover:border-coffee-400 transition-all group"
   >
-    <div className="flex items-center gap-3">
-      <div className="p-2 bg-coffee-900 rounded-lg group-hover:bg-coffee-100 group-hover:text-coffee-950 transition-colors text-coffee-400">
+    <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+      <div className="p-2 bg-coffee-900 rounded-lg group-hover:bg-coffee-100 group-hover:text-coffee-950 transition-colors text-coffee-400 flex-shrink-0">
         {action.icon}
       </div>
-      <span className="text-sm font-medium text-coffee-100">
+      <span className="text-xs sm:text-sm font-medium text-coffee-100 truncate">
         {action.label}
       </span>
     </div>
     <ArrowRight
-      size={16}
-      className="text-coffee-600 group-hover:text-coffee-100 group-hover:translate-x-1 transition-all"
+      size={14}
+      className="text-coffee-600 group-hover:text-coffee-100 group-hover:translate-x-1 transition-all flex-shrink-0 ml-2"
     />
   </button>
 ))}
 
             </div>
 
-            <div className="mt-12 p-6 bg-gradient-to-br from-coffee-800 to-coffee-950 rounded-2xl border border-coffee-700">
+            <div className="mt-6 sm:mt-12 p-4 sm:p-6 bg-gradient-to-br from-coffee-800 to-coffee-950 rounded-2xl border border-coffee-700">
               <p className="text-xs text-coffee-400 font-bold uppercase tracking-widest mb-2">Notice Board</p>
-              <p className="text-sm leading-relaxed text-coffee-100">
+              <p className="text-xs sm:text-sm leading-relaxed text-coffee-100">
                 Data is now synced live with the order database. Check the revenue chart for daily performance updates.
               </p>
             </div>

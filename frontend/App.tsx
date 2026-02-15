@@ -2,6 +2,8 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import ToastContainer from './components/ToastContainer';
+import ConfirmDialog from './components/ConfirmDialog';
 import Chatbot from './components/Chatbot'; // <--- Import here
 
 // ... imports for pages ...
@@ -48,6 +50,8 @@ const [showIntro, setShowIntro] = useState(true);
   return (
     <div className="min-h-screen flex flex-col font-sans bg-cream text-[#3E2723] selection:bg-gold selection:text-white">
       <IntroLoader show={showIntro} />
+      <ToastContainer />
+      <ConfirmDialog />
       {!isAuthPage && <Header />}
   {!showIntro && (
         <main className="flex-grow ">

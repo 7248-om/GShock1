@@ -4,6 +4,8 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import App from './App';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './hooks/useCart';
+import { ToastProvider } from './context/ToastContext';
+import { ConfirmProvider } from './context/ConfirmContext';
 import './index.css'; // Ensure your CSS with Inter and Playfair is imported
 
 const rootElement = document.getElementById('root');
@@ -15,12 +17,16 @@ const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
     {/* Auth and Cart should usually wrap the Router so they are available everywhere */}
-    <AuthProvider>
-      <CartProvider>
-        <Router>
-          <App />
-        </Router>
-      </CartProvider>
-    </AuthProvider>
+    <ToastProvider>
+      <ConfirmProvider>
+        <AuthProvider>
+          <CartProvider>
+            <Router>
+              <App />
+            </Router>
+          </CartProvider>
+        </AuthProvider>
+      </ConfirmProvider>
+    </ToastProvider>
   </React.StrictMode>
 );

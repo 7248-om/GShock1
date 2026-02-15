@@ -74,18 +74,18 @@ const UserManagement: React.FC<Props> = ({ users: initialUsers }) => {
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <header>
-        <h2 className="text-4xl font-serif font-bold tracking-tight text-coffee-100">User Stewardship</h2>
-        <p className="text-coffee-500 mt-1">Managing relationships and engagement history.</p>
+        <h2 className="text-3xl sm:text-4xl font-serif font-bold tracking-tight text-coffee-100">User Stewardship</h2>
+        <p className="text-coffee-500 mt-1 text-sm sm:text-base">Managing relationships and engagement history.</p>
       </header>
 
       {error && (
-        <div className="bg-red-900/20 border border-red-800 rounded-xl p-3 text-red-400 text-sm">
+        <div className="bg-red-900/20 border border-red-800 rounded-xl p-3 text-red-400 text-xs sm:text-sm">
           {error}
         </div>
       )}
 
-      <div className="flex items-center gap-4 bg-coffee-900 p-4 rounded-2xl border border-coffee-800">
-        <Search className="text-coffee-500" size={18} />
+      <div className="flex items-center gap-2 sm:gap-4 bg-coffee-900 p-3 sm:p-4 rounded-2xl border border-coffee-800">
+        <Search className="text-coffee-500 flex-shrink-0" size={18} />
         <input
           type="text"
           placeholder="Search users..."
@@ -96,96 +96,141 @@ const UserManagement: React.FC<Props> = ({ users: initialUsers }) => {
       </div>
 
       <div className="bg-coffee-900 border border-coffee-800 rounded-3xl overflow-hidden">
-        <table className="w-full text-left">
-          <thead className="border-b border-coffee-800 bg-coffee-950/40">
-            <tr>
-              <th className="px-6 py-4 text-[10px] uppercase tracking-widest text-coffee-500 font-bold">User</th>
-              <th className="px-6 py-4 text-[10px] uppercase tracking-widest text-coffee-500 font-bold">Role</th>
-              <th className="px-6 py-4 text-[10px] uppercase tracking-widest text-coffee-500 font-bold">Joined</th>
-              <th className="px-6 py-4 text-[10px] uppercase tracking-widest text-coffee-500 font-bold">Engagement</th>
-              <th className="px-6 py-4"></th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-coffee-800">
-            {loadingUsers ? (
+        {/* Desktop Table */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full text-left">
+            <thead className="border-b border-coffee-800 bg-coffee-950/40">
               <tr>
-                <td colSpan={5} className="px-6 py-8 text-center text-coffee-500 text-sm">Loading users…</td>
+                <th className="px-6 py-4 text-[10px] uppercase tracking-widest text-coffee-500 font-bold">User</th>
+                <th className="px-6 py-4 text-[10px] uppercase tracking-widest text-coffee-500 font-bold">Role</th>
+                <th className="px-6 py-4 text-[10px] uppercase tracking-widest text-coffee-500 font-bold">Joined</th>
+                <th className="px-6 py-4 text-[10px] uppercase tracking-widest text-coffee-500 font-bold">Engagement</th>
+                <th className="px-6 py-4"></th>
               </tr>
-            ) : filteredUsers.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="px-6 py-8 text-center text-coffee-500 text-sm">No users found.</td>
-              </tr>
-            ) : (
-              filteredUsers.map(user => (
-                <tr key={user._id || user.id} className="hover:bg-coffee-800/30 transition-colors">
-                  <td className="px-6 py-4">
-                    <div>
-                      <p className="text-sm font-bold text-coffee-100">{user.name}</p>
-                      <p className="text-xs text-coffee-500 flex items-center gap-1 mt-0.5"><Mail size={10} /> {user.email}</p>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <select
-                      value={(user as any).role || 'user'}
-                      onChange={(e) => handleRoleChange(user._id || user.id || '', e.target.value as 'user' | 'admin')}
-                      disabled={updatingRole === (user._id || user.id)}
-                      className="text-xs font-bold px-3 py-1 rounded bg-coffee-800 text-coffee-100 border border-coffee-700 focus:outline-none disabled:opacity-50"
-                    >
-                      <option value="user">User</option>
-                      <option value="admin">Admin</option>
-                    </select>
-                  </td>
-                  <td className="px-6 py-4">
-                    <p className="text-xs text-coffee-600 flex items-center gap-2"><Calendar size={12} /> {user.joinDate || 'N/A'}</p>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-4 text-coffee-100">
-                      <div className="text-center">
-                        <p className="text-[10px] uppercase font-bold text-coffee-500 tracking-widest">Orders</p>
-                        <p className="text-xs font-bold">{(user as any).orderCount || 0}</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-[10px] uppercase font-bold text-coffee-500 tracking-widest">WS</p>
-                        <p className="text-xs font-bold">{(user as any).workshopCount || 0}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <button onClick={() => setSelectedUser(user)} className="text-coffee-500 hover:text-coffee-100"><ExternalLink size={18} /></button>
-                  </td>
+            </thead>
+            <tbody className="divide-y divide-coffee-800">
+              {loadingUsers ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-8 text-center text-coffee-500 text-sm">Loading users…</td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : filteredUsers.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-8 text-center text-coffee-500 text-sm">No users found.</td>
+                </tr>
+              ) : (
+                filteredUsers.map(user => (
+                  <tr key={user._id || user.id} className="hover:bg-coffee-800/30 transition-colors">
+                    <td className="px-6 py-4">
+                      <div>
+                        <p className="text-sm font-bold text-coffee-100">{user.name}</p>
+                        <p className="text-xs text-coffee-500 flex items-center gap-1 mt-0.5"><Mail size={10} /> {user.email}</p>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <select
+                        value={(user as any).role || 'user'}
+                        onChange={(e) => handleRoleChange(user._id || user.id || '', e.target.value as 'user' | 'admin')}
+                        disabled={updatingRole === (user._id || user.id)}
+                        className="text-xs font-bold px-3 py-1 rounded bg-coffee-800 text-coffee-100 border border-coffee-700 focus:outline-none disabled:opacity-50"
+                      >
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                      </select>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="text-xs text-coffee-600 flex items-center gap-2"><Calendar size={12} /> {user.joinDate || 'N/A'}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-4 text-coffee-100">
+                        <div className="text-center">
+                          <p className="text-[10px] uppercase font-bold text-coffee-500 tracking-widest">Orders</p>
+                          <p className="text-xs font-bold">{(user as any).orderCount || 0}</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-[10px] uppercase font-bold text-coffee-500 tracking-widest">WS</p>
+                          <p className="text-xs font-bold">{(user as any).workshopCount || 0}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button onClick={() => setSelectedUser(user)} className="text-coffee-500 hover:text-coffee-100"><ExternalLink size={18} /></button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="md:hidden space-y-3 p-4">
+          {loadingUsers ? (
+            <p className="text-center text-coffee-500 text-sm py-8">Loading users…</p>
+          ) : filteredUsers.length === 0 ? (
+            <p className="text-center text-coffee-500 text-sm py-8">No users found.</p>
+          ) : (
+            filteredUsers.map(user => (
+              <div key={user._id || user.id} className="bg-coffee-800 rounded-lg p-4 space-y-2 border border-coffee-700">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-coffee-100 truncate">{user.name}</p>
+                    <p className="text-xs text-coffee-500 truncate">{user.email}</p>
+                  </div>
+                  <button onClick={() => setSelectedUser(user)} className="ml-2 text-coffee-500 hover:text-coffee-100 flex-shrink-0"><ExternalLink size={16} /></button>
+                </div>
+                <div className="flex gap-2 justify-between text-xs">
+                  <select
+                    value={(user as any).role || 'user'}
+                    onChange={(e) => handleRoleChange(user._id || user.id || '', e.target.value as 'user' | 'admin')}
+                    disabled={updatingRole === (user._id || user.id)}
+                    className="flex-1 font-bold px-2 py-1.5 rounded bg-coffee-700 text-coffee-100 border border-coffee-600 focus:outline-none disabled:opacity-50 text-xs"
+                  >
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+                <div className="flex gap-4 text-xs pt-1 border-t border-coffee-700">
+                  <div>
+                    <p className="text-coffee-500 uppercase font-bold text-[10px]">Orders</p>
+                    <p className="font-bold text-coffee-200">{(user as any).orderCount || 0}</p>
+                  </div>
+                  <div>
+                    <p className="text-coffee-500 uppercase font-bold text-[10px]">WS</p>
+                    <p className="font-bold text-coffee-200">{(user as any).workshopCount || 0}</p>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
 
       {selectedUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-coffee-950/80 backdrop-blur-sm p-4">
-          <div className="w-full max-w-2xl bg-coffee-900 border border-coffee-800 rounded-3xl shadow-2xl animate-in zoom-in-95 duration-200">
-             <div className="p-8 border-b border-coffee-800 flex justify-between items-center">
-                <h3 className="text-2xl font-serif font-bold text-coffee-100">User Dossier</h3>
-                <button onClick={() => setSelectedUser(null)} className="p-2 text-coffee-500 hover:bg-coffee-800 rounded-full"><X /></button>
+          <div className="w-full max-w-2xl bg-coffee-900 border border-coffee-800 rounded-3xl shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+             <div className="p-6 sm:p-8 border-b border-coffee-800 flex justify-between items-center sticky top-0 bg-coffee-900">
+                <h3 className="text-lg sm:text-2xl font-serif font-bold text-coffee-100">User Dossier</h3>
+                <button onClick={() => setSelectedUser(null)} className="p-2 text-coffee-500 hover:bg-coffee-800 rounded-full flex-shrink-0"><X /></button>
              </div>
-             <div className="p-8 grid grid-cols-2 gap-8">
+             <div className="p-6 sm:p-8 grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
                 <div>
                    <p className="text-[10px] uppercase font-bold text-coffee-500 mb-4 tracking-[0.2em]">Customer Profile</p>
                    <div className="space-y-4">
                       <div>
                         <p className="text-xs text-coffee-600">Full Name</p>
-                        <p className="text-lg font-bold text-coffee-100">{selectedUser.name}</p>
+                        <p className="text-base sm:text-lg font-bold text-coffee-100">{selectedUser.name}</p>
                       </div>
                       <div>
                         <p className="text-xs text-coffee-600">Email</p>
-                        <p className="text-sm text-coffee-200">{selectedUser.email}</p>
+                        <p className="text-xs sm:text-sm text-coffee-200 break-all">{selectedUser.email}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-coffee-600">Role</p>
+                        <p className="text-xs text-coffee-600 mb-2">Role</p>
                         <select
                           value={(selectedUser as any).role || 'user'}
                           onChange={(e) => handleRoleChange(selectedUser._id || selectedUser.id || '', e.target.value as 'user' | 'admin')}
                           disabled={updatingRole === (selectedUser._id || selectedUser.id)}
-                          className="text-sm font-bold px-3 py-2 rounded bg-coffee-800 text-coffee-100 border border-coffee-700 focus:outline-none disabled:opacity-50 w-full mt-1"
+                          className="text-sm font-bold px-3 py-2 rounded bg-coffee-800 text-coffee-100 border border-coffee-700 focus:outline-none disabled:opacity-50 w-full"
                         >
                           <option value="user">User</option>
                           <option value="admin">Admin</option>
@@ -193,7 +238,7 @@ const UserManagement: React.FC<Props> = ({ users: initialUsers }) => {
                       </div>
                       <div>
                         <p className="text-xs text-coffee-600">Registration</p>
-                        <p className="text-sm text-coffee-200">{selectedUser.joinDate || 'N/A'}</p>
+                        <p className="text-xs sm:text-sm text-coffee-200">{selectedUser.joinDate || 'N/A'}</p>
                       </div>
                    </div>
                 </div>
@@ -211,7 +256,7 @@ const UserManagement: React.FC<Props> = ({ users: initialUsers }) => {
                    </div>
                 </div>
              </div>
-             <div className="p-8 border-t border-coffee-800 text-right">
+             <div className="p-6 sm:p-8 border-t border-coffee-800 text-right sticky bottom-0 bg-coffee-900">
                 <button onClick={() => setSelectedUser(null)} className="px-6 py-2 bg-coffee-800 text-coffee-100 text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-coffee-700 transition-colors">Close Dossier</button>
              </div>
           </div>

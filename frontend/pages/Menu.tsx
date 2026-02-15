@@ -5,6 +5,7 @@ import { CartDrawer } from "../components/cart/CartDrawer";
 import { useCart } from "../hooks/useCart";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
 import { initiateRazorpayPayment } from "../utils/razorpay";
 import axios from 'axios';
 
@@ -23,6 +24,7 @@ export interface MenuItem {
 const Menu = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { addToast } = useToast();
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,7 +69,7 @@ const Menu = () => {
     }
 
     if (cartItems.length === 0 || totalPrice <= 0) {
-      alert('Your cart is empty. Please add items before checkout.');
+      addToast('Your cart is empty. Please add items before checkout.', 'warning');
       setIsCartOpen(true);
       return;
     }
@@ -83,7 +85,7 @@ const Menu = () => {
         navigate('/payment-success');
       },
       (error) => {
-        alert(error.response?.data?.message || 'Payment failed. Please try again.');
+        addToast(error.response?.data?.message || 'Payment failed. Please try again.', 'error');
       }
     );
   };

@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
+import { useConfirm } from '../../context/ConfirmContext';
 import axios from 'axios';
 import { Search, Plus, MoreVertical, X, Trash2, Instagram, Globe, CheckCircle, XCircle, UserPlus, Loader2 } from 'lucide-react';
 
@@ -20,6 +22,7 @@ interface Artist {
 
 const ArtistManagement: React.FC = () => {
   const { token } = useAuth();
+  const { addToast } = useToast();
   const [artists, setArtists] = useState<Artist[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [artworks, setArtworks] = useState<any[]>([]);
@@ -118,15 +121,25 @@ const ArtistManagement: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Are you sure? This will deactivate the artist profile.')) return;
+    const confirmed = await openConfirm({
+      title: 'Deactivate Artist',
+      message: 'Are you sure you want to deactivate this artist profile? This action cannot be undone.',
+      confirmText: 'Deactivate',
+      cancelText: 'Cancel',
+      type: 'danger',
+      onConfirm: async () => {},
+      onCancel: () => {},
+    });
+    if (!confirmed) return;
     try {
       // Soft delete: set isActive to false
       await axios.put(`${API_BASE_URL}/artists/${id}`, { isActive: false }, {
          headers: { Authorization: `Bearer ${token}` }
       });
       fetchAllData();
+      addToast('Artist profile deactivated successfully', 'success');
     } catch (err) {
-      alert('Failed to delete');
+      addToast('Failed to delete', 'error');
     }
   };
 

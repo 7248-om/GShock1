@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
+import { useConfirm } from '../../context/ConfirmContext';
 import axios from 'axios';
 import { Upload, Trash2, Check, X } from 'lucide-react';
 
@@ -108,7 +110,16 @@ const ReelManagement: React.FC = () => {
   };
 
   const handleDeleteReel = async (reelId: string) => {
-    if (!window.confirm('Are you sure you want to delete this reel?')) return;
+    const confirmed = await openConfirm({
+      title: 'Delete Reel',
+      message: 'Are you sure you want to delete this reel? This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      type: 'danger',
+      onConfirm: async () => {},
+      onCancel: () => {},
+    });
+    if (!confirmed) return;
 
     try {
       await axios.delete(`${API_BASE_URL}/reels/${reelId}`, {
