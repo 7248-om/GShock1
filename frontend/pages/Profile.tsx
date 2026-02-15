@@ -262,8 +262,10 @@ const Profile: React.FC = () => {
                                 year: 'numeric',
                                 month: 'short',
                                 day: 'numeric',
+                              })} at {new Date(order.createdAt).toLocaleTimeString('en-IN', {
                                 hour: '2-digit',
                                 minute: '2-digit',
+                                second: '2-digit',
                               })}
                             </p>
                           </div>
@@ -361,7 +363,11 @@ const Profile: React.FC = () => {
                                     </p>
                                     {isCurrent && (
                                       <p className="text-xs" style={{ color: THEME.bronze }}>
-                                        {new Date(order.updatedAt).toLocaleDateString('en-IN')}
+                                        {new Date(order.updatedAt).toLocaleDateString('en-IN')} at {new Date(order.updatedAt).toLocaleTimeString('en-IN', {
+                                          hour: '2-digit',
+                                          minute: '2-digit',
+                                          second: '2-digit',
+                                        })}
                                       </p>
                                     )}
                                   </div>
@@ -379,7 +385,11 @@ const Profile: React.FC = () => {
                                 <div className="flex-1">
                                   <p className="font-semibold text-red-600">Order Cancelled</p>
                                   <p className="text-xs" style={{ color: THEME.bronze }}>
-                                    {new Date(order.updatedAt).toLocaleDateString('en-IN')}
+                                    {new Date(order.updatedAt).toLocaleDateString('en-IN')} at {new Date(order.updatedAt).toLocaleTimeString('en-IN', {
+                                      hour: '2-digit',
+                                      minute: '2-digit',
+                                      second: '2-digit',
+                                    })}
                                   </p>
                                 </div>
                               </div>

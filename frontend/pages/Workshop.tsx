@@ -310,14 +310,79 @@ const WorkshopSubmissionForm: React.FC = () => {
 };
 
 /* ================= WORKSHOP CARD ================= */
-const WorkshopCard: React.FC<{ workshop: WorkshopType }> = ({ workshop }) => {
-  const [booked, setBooked] = useState(false);
+const WorkshopCard: React.FC<{ workshop: WorkshopType; onReservationChange?: () => void }> = ({ workshop, onReservationChange }) => {
+  const { user, token } = useAuth();
+  const [isBooked, setIsBooked] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [vacancyCount, setVacancyCount] = useState((workshop.capacity || 0) - (workshop.attendees?.length || 0));
+  const API_BASE_URL = import.meta.env.VITE_BACKEND_API_URL || '/api';
+
   const dateObj = new Date(workshop.date);
   const startTimeObj = workshop.startTime ? new Date(workshop.startTime) : null;
 
-  const handleReserve = () => {
-    setBooked(true);
-    setTimeout(() => setBooked(false), 3000);
+  // Check if user is already booked
+  useEffect(() => {
+    if (user && workshop.attendees) {
+      const isUserBooked = workshop.attendees.includes(user.id || user._id);
+      setIsBooked(isUserBooked);
+    }
+  }, [user, workshop.attendees]);
+
+  // Update vacancy count
+  useEffect(() => {
+    setVacancyCount((workshop.capacity || 0) - (workshop.attendees?.length || 0));
+  }, [workshop.attendees, workshop.capacity]);
+
+  const handleReserve = async () => {
+    if (!user) {
+      alert('Please login to book a seat');
+      return;
+    }
+
+    if (isBooked) {
+      // Cancel booking
+      const confirmCancel = window.confirm('Are you sure you want to cancel this booking?');
+      if (!confirmCancel) return;
+
+      setIsLoading(true);
+      try {
+        const response = await axios.delete(
+          `${API_BASE_URL}/workshops/${workshop._id || workshop.id}/cancel`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setIsBooked(false);
+        setVacancyCount(response.data.vacancyCount);
+        onReservationChange?.();
+      } catch (err: any) {
+        console.error('Failed to cancel booking:', err);
+        alert(err.response?.data?.message || 'Failed to cancel booking');
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      // Reserve seat
+      if (vacancyCount <= 0) {
+        alert('This workshop is at full capacity');
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        const response = await axios.post(
+          `${API_BASE_URL}/workshops/${workshop._id || workshop.id}/reserve`,
+          {},
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setIsBooked(true);
+        setVacancyCount(response.data.vacancyCount);
+        onReservationChange?.();
+      } catch (err: any) {
+        console.error('Failed to book workshop:', err);
+        alert(err.response?.data?.message || 'Failed to book workshop');
+      } finally {
+        setIsLoading(false);
+      }
+    }
   };
 
   return (
@@ -343,12 +408,27 @@ const WorkshopCard: React.FC<{ workshop: WorkshopType }> = ({ workshop }) => {
           </div>
         </div>
         <p className="font-light mb-2 sm:mb-4 line-clamp-3 text-[10px] sm:text-[13px] italic leading-relaxed" style={{ color: `${THEME.espresso}CC` }}>{workshop.description}</p>
+        
+        {/* Vacancy Info */}
+        <div className="mb-3 sm:mb-4 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest" style={{ color: THEME.bronze }}>
+          Seats: {workshop.attendees?.length || 0}/{workshop.capacity || '∞'} {vacancyCount > 0 ? `(${vacancyCount} left)` : '(Full)'}
+        </div>
+
         <div className="mt-auto flex items-center gap-2 sm:gap-4">
           <div className="text-sm sm:text-lg md:text-[18px] font-black uppercase tracking-widest" style={{ color: THEME.bronze }}>
             {workshop.price === 0 ? 'FREE' : `₹${workshop.price}`}
           </div>
-          <button onClick={handleReserve} disabled={booked} style={{ backgroundColor: booked ? THEME.bronze : THEME.espresso, color: THEME.cream }} className="flex-1 text-[8px] sm:text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] py-2 sm:py-3 transition-all duration-300 hover:opacity-90 active:scale-95 rounded-lg">
-            {booked ? 'Reserved' : 'Book Seat'}
+          <button 
+            onClick={handleReserve} 
+            disabled={isLoading || (vacancyCount <= 0 && !isBooked)}
+            style={{ 
+              backgroundColor: isBooked ? THEME.bronze : THEME.espresso, 
+              color: THEME.cream,
+              opacity: isLoading ? 0.6 : 1
+            }} 
+            className="flex-1 text-[8px] sm:text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] py-2 sm:py-3 transition-all duration-300 hover:opacity-90 active:scale-95 rounded-lg disabled:cursor-not-allowed"
+          >
+            {isLoading ? 'Processing...' : (isBooked ? 'Cancel Seat' : 'Book Seat')}
           </button>
         </div>
       </div>
@@ -387,23 +467,24 @@ const Workshop: React.FC = () => {
 
   const API_BASE_URL = import.meta.env.VITE_BACKEND_API_URL || '/api';
 
+  const fetchWorkshops = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${API_BASE_URL}/workshops`);
+      const mappedData = response.data.map((w: any) => ({
+        ...w,
+        id: w._id || w.id,
+        image: w.primaryImageUrl || w.image || 'https://via.placeholder.com/400x300?text=No+Image'
+      }));
+      setWorkshops(mappedData);
+    } catch (err) {
+      console.error("Failed to load workshops:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchWorkshops = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get(`${API_BASE_URL}/workshops`);
-        const mappedData = response.data.map((w: any) => ({
-          ...w,
-          id: w._id || w.id,
-          image: w.primaryImageUrl || w.image || 'https://via.placeholder.com/400x300?text=No+Image'
-        }));
-        setWorkshops(mappedData);
-      } catch (err) {
-        console.error("Failed to load workshops:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchWorkshops();
   }, []);
 
@@ -556,7 +637,7 @@ const Workshop: React.FC = () => {
             ) : filteredAndSortedWorkshops.length > 0 ? (
               <div className="workshop-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 lg:gap-x-10 lg:gap-y-12">
                 {filteredAndSortedWorkshops.map(w => (
-                  <WorkshopCard key={w.id} workshop={w} />
+                  <WorkshopCard key={w.id} workshop={w} onReservationChange={fetchWorkshops} />
                 ))}
               </div>
             ) : (

@@ -4,11 +4,28 @@ const Workshop = require('../models/workshop.model');
 const FranchiseLead = require('../models/franchiseLead.model');
 const PDFDocument = require('pdfkit'); // Make sure to run: npm install pdfkit
 
-// Get all users
+// Get all users with order and workshop counts
 async function getUsers(req, res) {
     try {
         const users = await User.find();
-        res.status(200).json(users);
+        
+        // Enhance each user with order and workshop counts
+        const usersWithEngagement = await Promise.all(
+            users.map(async (user) => {
+                const orderCount = await Order.countDocuments({ user: user._id });
+                const workshopCount = await Workshop.countDocuments({ tutorId: user._id });
+                
+                return {
+                    ...user.toObject(),
+                    orderHistory: [], // Empty array for compatibility
+                    workshopHistory: [], // Empty array for compatibility
+                    orderCount,
+                    workshopCount
+                };
+            })
+        );
+        
+        res.status(200).json(usersWithEngagement);
     } catch (error) {
         res.status(500).json({ message: 'Internal server error' });
     }

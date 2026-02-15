@@ -16,6 +16,12 @@ router.get('/:id', workshopController.getWorkshopById);
 // Logged-in user: Create workshop (goes to Pending)
 router.post('/', authMiddleware, workshopController.createWorkshopByUser);
 
+// Logged-in user: Reserve workshop seat
+router.post('/:id/reserve', authMiddleware, workshopController.reserveWorkshop);
+
+// Logged-in user: Cancel workshop reservation
+router.delete('/:id/cancel', authMiddleware, workshopController.cancelWorkshop);
+
 // Admin: Get all workshops (all statuses) for admin review
 router.get('/admin/all', authMiddleware, adminMiddleware, workshopController.getAllWorkshopsForAdmin);
 

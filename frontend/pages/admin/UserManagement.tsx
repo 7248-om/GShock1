@@ -142,11 +142,11 @@ const UserManagement: React.FC<Props> = ({ users: initialUsers }) => {
                     <div className="flex items-center gap-4 text-coffee-100">
                       <div className="text-center">
                         <p className="text-[10px] uppercase font-bold text-coffee-500 tracking-widest">Orders</p>
-                        <p className="text-xs font-bold">{(user.orderHistory || []).length}</p>
+                        <p className="text-xs font-bold">{(user as any).orderCount || 0}</p>
                       </div>
                       <div className="text-center">
                         <p className="text-[10px] uppercase font-bold text-coffee-500 tracking-widest">WS</p>
-                        <p className="text-xs font-bold">{(user.workshopHistory || []).length}</p>
+                        <p className="text-xs font-bold">{(user as any).workshopCount || 0}</p>
                       </div>
                     </div>
                   </td>
@@ -201,12 +201,12 @@ const UserManagement: React.FC<Props> = ({ users: initialUsers }) => {
                    <p className="text-[10px] uppercase font-bold text-coffee-500 mb-4 tracking-[0.2em]">Activity Ledger</p>
                    <div className="bg-coffee-950/40 rounded-2xl border border-coffee-800 p-4 space-y-3">
                       <div className="flex justify-between border-b border-coffee-800 pb-2">
-                        <span className="text-xs text-coffee-600">Order IDs</span>
-                        <span className="text-xs font-mono text-coffee-200">{(selectedUser.orderHistory || []).join(', ') || 'None'}</span>
+                        <span className="text-xs text-coffee-600">Orders</span>
+                        <span className="text-xs font-bold text-coffee-200">{(selectedUser as any).orderCount || 0}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-xs text-coffee-600">Workshops</span>
-                        <span className="text-xs font-mono text-coffee-200">{(selectedUser.workshopHistory || []).length} Sessions</span>
+                        <span className="text-xs font-bold text-coffee-200">{(selectedUser as any).workshopCount || 0}</span>
                       </div>
                    </div>
                 </div>

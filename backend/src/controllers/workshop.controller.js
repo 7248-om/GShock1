@@ -243,6 +243,84 @@ async function deleteWorkshop(req, res) {
     }
 }
 
+// User: Reserve a seat in workshop
+async function reserveWorkshop(req, res) {
+    try {
+        const userId = req.user?.id || req.user?._id;
+        const workshopId = req.params.id;
+
+        if (!userId) {
+            return res.status(401).json({ message: 'User not authenticated' });
+        }
+
+        const workshop = await Workshop.findById(workshopId);
+        if (!workshop) {
+            return res.status(404).json({ message: 'Workshop not found' });
+        }
+
+        // Check if user is already an attendee
+        if (workshop.attendees.includes(userId)) {
+            return res.status(400).json({ message: 'User is already registered for this workshop' });
+        }
+
+        // Check if workshop has available seats
+        if (workshop.capacity && workshop.attendees.length >= workshop.capacity) {
+            return res.status(400).json({ message: 'Workshop is at full capacity' });
+        }
+
+        // Add user to attendees
+        workshop.attendees.push(userId);
+        await workshop.save();
+
+        res.status(200).json({ 
+            message: 'Seat reserved successfully',
+            workshop,
+            attendeeCount: workshop.attendees.length,
+            vacancyCount: workshop.capacity - workshop.attendees.length
+        });
+    } catch (error) {
+        console.error('Workshop reservation error:', error);
+        res.status(500).json({ message: 'Internal server error', error: error.message });
+    }
+}
+
+// User: Cancel workshop reservation
+async function cancelWorkshop(req, res) {
+    try {
+        const userId = req.user?.id || req.user?._id;
+        const workshopId = req.params.id;
+
+        if (!userId) {
+            return res.status(401).json({ message: 'User not authenticated' });
+        }
+
+        const workshop = await Workshop.findById(workshopId);
+        if (!workshop) {
+            return res.status(404).json({ message: 'Workshop not found' });
+        }
+
+        // Check if user is an attendee
+        const attendeeIndex = workshop.attendees.findIndex(id => id.toString() === userId.toString());
+        if (attendeeIndex === -1) {
+            return res.status(400).json({ message: 'User is not registered for this workshop' });
+        }
+
+        // Remove user from attendees
+        workshop.attendees.splice(attendeeIndex, 1);
+        await workshop.save();
+
+        res.status(200).json({ 
+            message: 'Booking cancelled successfully',
+            workshop,
+            attendeeCount: workshop.attendees.length,
+            vacancyCount: workshop.capacity - workshop.attendees.length
+        });
+    } catch (error) {
+        console.error('Workshop cancellation error:', error);
+        res.status(500).json({ message: 'Internal server error', error: error.message });
+    }
+}
+
 module.exports = {
     getWorkshops,
     getWorkshopById,
@@ -255,4 +333,6 @@ module.exports = {
     updateWorkshopStatus,
     getPendingWorkshops,
     deleteWorkshop,
+    reserveWorkshop,
+    cancelWorkshop,
 };

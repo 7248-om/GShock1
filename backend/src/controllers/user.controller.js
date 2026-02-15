@@ -1,4 +1,6 @@
 const User = require('../models/user.model');
+const Order = require('../models/order.model');
+const Workshop = require('../models/workshop.model');
 
 async function getMe(req, res) {
     // req.user is populated by the authMiddleware
@@ -8,7 +10,24 @@ async function getMe(req, res) {
 async function getAllUsers(req, res) {
     try {
         const users = await User.find().select('-__v');
-        res.status(200).json(users);
+        
+        // Enhance each user with order and workshop counts
+        const usersWithEngagement = await Promise.all(
+            users.map(async (user) => {
+                const orderCount = await Order.countDocuments({ user: user._id });
+                const workshopCount = await Workshop.countDocuments({ tutorId: user._id });
+                
+                return {
+                    ...user.toObject(),
+                    orderHistory: [], // Empty array for compatibility
+                    workshopHistory: [], // Empty array for compatibility
+                    orderCount,
+                    workshopCount
+                };
+            })
+        );
+        
+        res.status(200).json(usersWithEngagement);
     } catch (error) {
         res.status(500).json({ message: 'Failed to fetch users', error: error.message });
     }

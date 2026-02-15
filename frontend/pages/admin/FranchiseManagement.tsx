@@ -2,9 +2,12 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { FranchiseLead, LeadStatus } from '../types';
+import { Trash2 } from 'lucide-react';
 
 const FranchiseManagement: React.FC = () => {
   const [leads, setLeads] = useState<FranchiseLead[]>([]);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const { token } = useAuth();
   const API_BASE_URL = import.meta.env.VITE_BACKEND_API_URL || '/api';
 
@@ -34,6 +37,27 @@ const FranchiseManagement: React.FC = () => {
     }
   };
 
+  const handleDeleteLead = (id: string) => {
+    setDeletingId(id);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deletingId) return;
+    try {
+      await axios.delete(`${API_BASE_URL}/franchises/${deletingId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setLeads(leads.filter(lead => (lead._id || lead.id) !== deletingId));
+      setShowDeleteConfirm(false);
+      setDeletingId(null);
+    } catch (err) {
+      alert('Failed to delete lead');
+      setShowDeleteConfirm(false);
+      setDeletingId(null);
+    }
+  };
+
   return (
     <div className="space-y-8 animate-in slide-in-from-right-4 duration-500">
       <header>
@@ -47,6 +71,7 @@ const FranchiseManagement: React.FC = () => {
                <th className="px-6 py-4 text-coffee-500 font-bold uppercase text-xs">Name</th>
                <th className="px-6 py-4 text-coffee-500 font-bold uppercase text-xs">Email</th>
                <th className="px-6 py-4 text-coffee-500 font-bold uppercase text-xs">Status</th>
+               <th className="px-6 py-4 text-coffee-500 font-bold uppercase text-xs">Action</th>
              </tr>
            </thead>
            <tbody className="divide-y divide-coffee-800">
@@ -66,11 +91,46 @@ const FranchiseManagement: React.FC = () => {
                       <option value="Rejected">Rejected</option>
                     </select>
                  </td>
+                 <td className="px-6 py-6">
+                   <button
+                     onClick={() => handleDeleteLead(lead._id || lead.id || '')}
+                     className="p-2 text-red-400 hover:bg-red-400/20 rounded-lg transition-colors"
+                     title="Delete lead"
+                   >
+                     <Trash2 size={18} />
+                   </button>
+                 </td>
                </tr>
              ))}
            </tbody>
         </table>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+          <div className="bg-coffee-800 border-2 border-coffee-600 rounded-2xl p-8 max-w-sm w-full shadow-2xl">
+            <h3 className="text-2xl font-bold text-coffee-50 mb-3">Delete Franchise Lead?</h3>
+            <p className="text-coffee-100 text-base mb-8 leading-relaxed">
+              Are you sure you want to delete this application? This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1 px-4 py-3 bg-coffee-700 hover:bg-coffee-600 text-coffee-50 rounded-lg font-bold uppercase text-sm transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold uppercase text-sm transition-colors shadow-lg"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
