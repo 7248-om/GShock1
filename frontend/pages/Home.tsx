@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Hero from '../components/Hero';
 // import Ticker from '../components/Ticker';
-import EmailPopup from '../components/EmailPopup';
+// import EmailPopup from '../components/EmailPopup'; // Removed: email popup no longer needed
 import SplitSection from '../components/SplitSection';
 import DoubleSplit from '../components/DoubleSplit';
 // import Arches from '../components/Arches';
@@ -12,18 +12,11 @@ import SuggestionSection from '../components/SuggestionSection';
 import { GoogleReviews } from '../components/GoogleReviews';
 
 const Home: React.FC = () => {
-  const [showPopup, setShowPopup] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowPopup(true);
-    }, 2000);
-    return () => clearTimeout(timer);
-  }, []);
+  // Email popup removed - users see intro animation instead
 
   return (
     <>
-      <EmailPopup isOpen={showPopup} onClose={() => setShowPopup(false)} />
+      {/* <EmailPopup removed - no longer needed /> */}
 
       {/* <Ticker /> */}
 

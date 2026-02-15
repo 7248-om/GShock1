@@ -34,16 +34,11 @@ const App = () => {
 const [showIntro, setShowIntro] = useState(true);
 
   useEffect(() => {
-    const seen = sessionStorage.getItem("introPlayed");
-
-    if (seen) {
+    // Show intro animation for 2.3 seconds on every page load
+    const timer = setTimeout(() => {
       setShowIntro(false);
-    } else {
-      setTimeout(() => {
-        sessionStorage.setItem("introPlayed", "true");
-        setShowIntro(false);
-      }, 2300); // animation duration
-    }
+    }, 2300); // animation duration
+    return () => clearTimeout(timer);
   }, []);
   
 
