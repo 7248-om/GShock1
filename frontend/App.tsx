@@ -25,7 +25,7 @@ import WhyRobusta from './pages/WhyRobusta';
 import Profile from './pages/Profile';
 import Artist from './pages/Artist';
 import OurStory from './pages/OurStory';
-import VisitCafe from "./pages/VisitCafe";
+
 import IntroLoader from "./IntroLoader";
 import BrewAI from './pages/BrewAI';
 const App = () => {
@@ -69,7 +69,7 @@ const [showIntro, setShowIntro] = useState(true);
             <Route path="/profile" element={<Profile/>}/>
             <Route path="/artist/:id" element={<Artist/>}/>
             <Route path="/ourstory" element={<OurStory/>}/>
-            <Route path="/visit-cafe" element={<VisitCafe />} />
+
             <Route path="/brew-ai" element={<BrewAI />} />
           </Routes>
         </main>
